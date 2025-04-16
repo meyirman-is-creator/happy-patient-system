@@ -1,14 +1,7 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next'
-import { Inter, Commissioner } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
-
-// Google fonts
-const commissioner = Commissioner({
-  subsets: ['latin'],
-  variable: '--font-commissioner',
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
-})
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,7 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${commissioner.variable} ${inter.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={`${inter.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

@@ -1,3 +1,4 @@
+// src/components/auth/login-form.tsx
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -37,6 +39,7 @@ const formSchema = z.object({
 export function LoginForm() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,7 +64,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-[400px] shadow-md">
+    <Card className="w-full max-w-md shadow-lg border-gray-200">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center text-[#273441]">
           Welcome Back
@@ -84,10 +87,11 @@ export function LoginForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-[#273441]">Username</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter your username"
+                      className="border-gray-300 focus:border-[#007CFF] focus:ring-[#007CFF]"
                       {...field}
                       onChange={(e) => {
                         clearError();
@@ -95,7 +99,7 @@ export function LoginForm() {
                       }}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[#EF4444]" />
                 </FormItem>
               )}
             />
@@ -105,26 +109,46 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-[#273441]">Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      {...field}
-                      onChange={(e) => {
-                        clearError();
-                        field.onChange(e);
-                      }}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="border-gray-300 focus:border-[#007CFF] focus:ring-[#007CFF]"
+                        {...field}
+                        onChange={(e) => {
+                          clearError();
+                          field.onChange(e);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[#EF4444]" />
                 </FormItem>
               )}
             />
 
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-sm text-[#007CFF] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
-              className="w-full bg-[#007CFF] hover:bg-[#0070E6]"
+              className="w-full bg-[#007CFF] hover:bg-[#0070E6] text-white"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
