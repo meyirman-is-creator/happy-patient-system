@@ -21,25 +21,29 @@ export const useAuth = () => {
   );
   const [tokenChecked, setTokenChecked] = useState(false);
 
-  // Check if token exists in localStorage on mount
+  // Проверяем, существует ли token в localStorage при монтировании
   useEffect(() => {
     const checkToken = async () => {
-      const storedToken =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      try {
+        const storedToken =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-      // If we have a token in localStorage but not in Redux, update Redux
-      if (storedToken && !token) {
-        dispatch(
-          loginSuccess({
-            user: null, // We'll get the user info from the API
-            token: storedToken,
-          })
-        );
-      } else if (!storedToken && token) {
-        // We have a token in Redux but not in localStorage, update localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("token", token);
+        // Если токен есть в localStorage, но не в Redux
+        if (storedToken && !token) {
+          dispatch(
+            loginSuccess({
+              user: null, // Получим информацию о пользователе из API
+              token: storedToken,
+            })
+          );
+        } else if (!storedToken && token) {
+          // Токен есть в Redux, но не в localStorage
+          if (typeof window !== "undefined") {
+            localStorage.setItem("token", token);
+          }
         }
+      } catch (error) {
+        console.error("Error checking token:", error);
       }
 
       setTokenChecked(true);
@@ -48,22 +52,20 @@ export const useAuth = () => {
     checkToken();
   }, [dispatch, token]);
 
-  // Get current user
+  // Получаем текущего пользователя
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: auth.getMe,
-    enabled: !!token && tokenChecked, // Only run if token exists and initial token check is done
-    retry: 1, // Try once more if it fails
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!token && tokenChecked && typeof window !== "undefined", // Запускаем только при наличии токена
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 минут
     onSuccess: (data) => {
       if (data) {
-        // Set user data in Redux if we get it
         dispatch(updateUserSuccess(data));
       }
     },
     onError: (error) => {
       console.error("Error fetching user data:", error);
-      // Clear token and state on auth error
       dispatch(logoutAction());
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
@@ -71,7 +73,7 @@ export const useAuth = () => {
     },
   });
 
-  // Register mutation
+  // Регистрация
   const register = useMutation({
     mutationFn: auth.register,
     onSuccess: () => {
@@ -79,23 +81,20 @@ export const useAuth = () => {
     },
   });
 
-  // Login mutation
+  // Вход
   const login = useMutation({
     mutationFn: auth.login,
     onMutate: () => {
       dispatch(loginStart());
     },
     onSuccess: (data) => {
-      // Ensure token is stored in localStorage
       if (typeof window !== "undefined" && data.token) {
         localStorage.setItem("token", data.token);
-        console.log("Token stored in localStorage:", data.token);
       }
 
       dispatch(loginSuccess({ user: data.user, token: data.token }));
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
 
-      // Redirect based on user role
       if (data.user.role === "PATIENT") {
         router.push("/calendar");
       } else {
@@ -104,11 +103,11 @@ export const useAuth = () => {
     },
     onError: (error: any) => {
       console.error("Login error:", error);
-      dispatch(loginFailure(error.message || "Authentication failed"));
+      dispatch(loginFailure(error.message || "Ошибка аутентификации"));
     },
   });
 
-  // Update user mutation
+  // Обновление профиля
   const updateUser = useMutation({
     mutationFn: auth.updateMe,
     onSuccess: (data) => {
@@ -117,12 +116,12 @@ export const useAuth = () => {
     },
   });
 
-  // Update password mutation
+  // Обновление пароля
   const updatePassword = useMutation({
     mutationFn: auth.updatePassword,
   });
 
-  // Logout function
+  // Выход
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { UserCircle, Mail, Phone, Lock, Calendar } from "lucide-react";
+import { ru } from "date-fns/locale";
+import { User, Mail, Phone, Lock, Calendar, FileText, UserCircle, Edit, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -78,15 +79,15 @@ export default function ProfilePage() {
       await updateUser.mutateAsync(profileFormData);
 
       toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
+        title: "Профиль обновлен",
+        description: "Ваша информация была успешно обновлена.",
       });
 
       setShowProfileDialog(false);
     } catch (error: any) {
       toast({
-        title: "Update failed",
-        description: error.message || "Failed to update profile information.",
+        title: "Ошибка обновления",
+        description: error.message || "Не удалось обновить информацию профиля.",
         variant: "destructive",
       });
     }
@@ -95,8 +96,8 @@ export default function ProfilePage() {
   const handleUpdatePassword = async () => {
     if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
       toast({
-        title: "Passwords do not match",
-        description: "Your new password and confirmation do not match.",
+        title: "Пароли не совпадают",
+        description: "Ваш новый пароль и подтверждение не совпадают.",
         variant: "destructive",
       });
       return;
@@ -109,8 +110,8 @@ export default function ProfilePage() {
       });
 
       toast({
-        title: "Password updated",
-        description: "Your password has been changed successfully.",
+        title: "Пароль обновлен",
+        description: "Ваш пароль был успешно изменен.",
       });
 
       setPasswordFormData({
@@ -122,8 +123,8 @@ export default function ProfilePage() {
       setShowPasswordDialog(false);
     } catch (error: any) {
       toast({
-        title: "Update failed",
-        description: error.message || "Failed to update password.",
+        title: "Ошибка обновления",
+        description: error.message || "Не удалось обновить пароль.",
         variant: "destructive",
       });
     }
@@ -134,365 +135,389 @@ export default function ProfilePage() {
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
   return (
-    <div className="p-6 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-sm space-y-8">
-      <h1 className="text-3xl font-bold text-blue-800 dark:text-blue-300 border-b border-blue-100 dark:border-gray-700 pb-4">
-        My Profile
-      </h1>
+    <div className="ml-0 lg:ml-64 p-6">
+      <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
+        <h1 className="text-2xl font-bold text-[#243352] border-b border-[#0A6EFF]/10 pb-4 flex items-center">
+          <UserCircle className="h-6 w-6 mr-2 text-[#0A6EFF]" />
+          Мой профиль
+        </h1>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {/* Profile Card */}
-        <Card className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-28 w-28 bg-blue-100 dark:bg-blue-900/30 ring-4 ring-blue-500/20 dark:ring-blue-400/20">
-                <AvatarFallback className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-center">
-                <CardTitle className="text-2xl text-blue-800 dark:text-blue-300">
-                  {user.role === "DOCTOR" ? "Dr. " : ""}
-                  {user.firstName} {user.lastName}
-                </CardTitle>
-                <CardDescription className="text-blue-600/70 dark:text-blue-400/70 font-medium">
-                  {user.role === "DOCTOR"
-                    ? "Doctor"
-                    : user.role === "ADMIN"
-                    ? "Administrator"
-                    : "Patient"}
-                </CardDescription>
+        <div className="grid gap-8 md:grid-cols-3 mt-6">
+          {/* Profile Card */}
+          <Card className="flex flex-col h-full border border-[#0A6EFF]/10 bg-white shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="pb-4 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="h-28 w-28 bg-[#0A6EFF]/10 ring-4 ring-[#0A6EFF]/20">
+                  <AvatarFallback className="text-2xl font-bold text-[#0A6EFF]">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <CardTitle className="text-2xl text-[#243352]">
+                    {user.role === "DOCTOR" ? "Др. " : ""}
+                    {user.firstName} {user.lastName}
+                  </CardTitle>
+                  <CardDescription className="text-[#0A6EFF] font-medium">
+                    {user.role === "DOCTOR"
+                      ? "Врач"
+                      : user.role === "ADMIN"
+                      ? "Администратор"
+                      : "Пациент"}
+                  </CardDescription>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-5 mt-2">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-gray-700 dark:text-gray-300">
-                  {user.email}
-                </span>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-5 mt-4">
+                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                  <Mail className="h-5 w-5 text-[#0A6EFF]" />
+                  <span className="text-[#243352]">
+                    {user.email}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                  <Phone className="h-5 w-5 text-[#0A6EFF]" />
+                  <span className="text-[#243352]">
+                    {user.phone}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                  <User className="h-5 w-5 text-[#0A6EFF]" />
+                  <span className="text-[#243352]">
+                    В системе с {format(new Date(user.createdAt), "LLLL yyyy", { locale: ru })}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-gray-700 dark:text-gray-300">
-                  {user.phone}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <UserCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-gray-700 dark:text-gray-300">
-                  Member since {format(new Date(user.createdAt), "MMMM yyyy")}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-3 pt-2">
-            <Button
-              onClick={() => {
-                setProfileFormData({
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  phone: user.phone,
-                });
-                setShowProfileDialog(true);
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 h-11 transition-colors"
-            >
-              Edit Profile
-            </Button>
-            <Button
-              onClick={() => setShowPasswordDialog(true)}
-              className="w-full bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-700 h-11 transition-colors"
-              variant="outline"
-            >
-              Change Password
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Main Content */}
-        <div className="md:col-span-2">
-          <Tabs
-            defaultValue={
-              user.role === "PATIENT" ? "medical-records" : "appointments"
-            }
-            className="w-full"
-          >
-            <TabsList className="mb-6 bg-blue-100 dark:bg-gray-800 p-1 rounded-lg w-full">
-              {user.role === "PATIENT" && (
-                <TabsTrigger
-                  value="medical-records"
-                  className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md py-2 transition-all"
-                >
-                  Medical Records
-                </TabsTrigger>
-              )}
-              <TabsTrigger
-                value="appointments"
-                className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md py-2 transition-all"
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-3 pt-2">
+              <Button
+                onClick={() => {
+                  setProfileFormData({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone,
+                  });
+                  setShowProfileDialog(true);
+                }}
+                className="w-full bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white h-11"
               >
-                My Appointments
-              </TabsTrigger>
-            </TabsList>
+                <Edit className="h-4 w-4 mr-2" />
+                Редактировать профиль
+              </Button>
+              <Button
+                onClick={() => setShowPasswordDialog(true)}
+                className="w-full bg-white text-[#243352] border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 h-11"
+                variant="outline"
+              >
+                <Lock className="h-4 w-4 mr-2" />
+                Изменить пароль
+              </Button>
+            </CardFooter>
+          </Card>
 
-            {/* Medical Records Tab - Only for Patients */}
-            {user.role === "PATIENT" && (
-              <TabsContent value="medical-records">
-                <Card className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 shadow-md">
-                  <CardHeader className="border-b border-blue-100 dark:border-gray-700">
-                    <CardTitle className="text-xl text-blue-800 dark:text-blue-300">
-                      Medical History
-                    </CardTitle>
-                    <CardDescription className="text-blue-600/70 dark:text-blue-400/70">
-                      Your complete medical history and records from visits
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {loadingRecords ? (
-                      <div className="flex justify-center py-12 text-blue-700 dark:text-blue-300">
-                        <div className="animate-pulse">
-                          Loading medical records...
+          {/* Main Content */}
+          <div className="md:col-span-2">
+            <Tabs
+              defaultValue={
+                user.role === "PATIENT" ? "medical-records" : "appointments"
+              }
+              className="w-full"
+            >
+              <TabsList className="mb-6 bg-[#0A6EFF]/5 p-1 rounded-lg w-full">
+                {user.role === "PATIENT" && (
+                  <TabsTrigger
+                    value="medical-records"
+                    className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md py-2"
+                  >
+                    Медицинская карта
+                  </TabsTrigger>
+                )}
+                <TabsTrigger
+                  value="appointments"
+                  className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md py-2"
+                >
+                  Мои записи
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Medical Records Tab - Only for Patients */}
+              {user.role === "PATIENT" && (
+                <TabsContent value="medical-records">
+                  <Card className="bg-white border border-[#0A6EFF]/10 shadow-sm">
+                    <CardHeader className="border-b border-[#0A6EFF]/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-xl text-[#243352] flex items-center">
+                            <FileText className="h-5 w-5 mr-2 text-[#0A6EFF]" />
+                            История болезни
+                          </CardTitle>
+                          <CardDescription className="text-[#243352]/70">
+                            Полная история ваших посещений и записей врачей
+                          </CardDescription>
+                        </div>
+                        <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 py-1 px-3 rounded-full">
+                          Всего записей: {medicalRecords.length}
                         </div>
                       </div>
-                    ) : medicalRecords.length === 0 ? (
-                      <div className="text-center py-12">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          No medical records found
-                        </p>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      {loadingRecords ? (
+                        <div className="flex justify-center py-12 text-[#0A6EFF]">
+                          <div className="animate-pulse">
+                            Загрузка медицинских записей...
+                          </div>
+                        </div>
+                      ) : medicalRecords.length === 0 ? (
+                        <div className="text-center py-12">
+                          <p className="text-[#243352]/70">
+                            Медицинские записи не найдены
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {medicalRecords.map((record) => (
+                            <div
+                              key={record.id}
+                              className="p-5 border border-[#0A6EFF]/10 rounded-lg hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex justify-between mb-3">
+                                <div className="font-medium text-[#243352]">
+                                  <span className="text-[#243352]/70 mr-1">
+                                    Дата:
+                                  </span>
+                                  {format(
+                                    new Date(record.appointment.startTime),
+                                    "d MMMM yyyy",
+                                    { locale: ru }
+                                  )}
+                                </div>
+                                <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 px-3 py-1 rounded-full">
+                                  {format(
+                                    new Date(record.appointment.startTime),
+                                    "HH:mm"
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="mb-4 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                                <span className="text-sm font-medium text-[#243352]/70">
+                                  Врач:
+                                </span>
+                                <span className="ml-2 text-[#0A6EFF] font-medium">
+                                  Др. {record.appointment.doctor.user.firstName}{" "}
+                                  {record.appointment.doctor.user.lastName}
+                                </span>
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="text-sm font-medium text-[#243352]/70 mb-2">
+                                  Заключение врача:
+                                </p>
+                                <p className="mt-1 whitespace-pre-wrap text-[#243352] p-4 bg-[#F8FAFC] rounded-md border border-[#0A6EFF]/10">
+                                  {record.doctorNotes}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* Appointments Tab */}
+              <TabsContent value="appointments">
+                <Card className="bg-white border border-[#0A6EFF]/10 shadow-sm">
+                  <CardHeader className="border-b border-[#0A6EFF]/10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xl text-[#243352] flex items-center">
+                          <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
+                          Мои записи
+                        </CardTitle>
+                        <CardDescription className="text-[#243352]/70">
+                          Просмотр предстоящих и прошедших записей
+                        </CardDescription>
+                      </div>
+                      <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 py-1 px-3 rounded-full">
+                        Активных записей: {upcomingAppointments.length}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    {loadingAppointments ? (
+                      <div className="flex justify-center py-12 text-[#0A6EFF]">
+                        <div className="animate-pulse">
+                          Загрузка записей...
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-6">
-                        {medicalRecords.map((record) => (
-                          <div
-                            key={record.id}
-                            className="p-5 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex justify-between mb-3">
-                              <div className="font-medium text-blue-800 dark:text-blue-300">
-                                <span className="text-gray-600 dark:text-gray-400 mr-1">
-                                  Date:
-                                </span>
-                                {format(
-                                  new Date(record.appointment.startTime),
-                                  "MMMM d, yyyy"
-                                )}
-                              </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
-                                {format(
-                                  new Date(record.appointment.startTime),
-                                  "h:mm a"
-                                )}
-                              </div>
-                            </div>
+                      <div className="space-y-8">
+                        {/* Upcoming Appointments */}
+                        <div>
+                          <h3 className="font-medium mb-4 flex items-center text-[#243352] pb-2 border-b border-[#0A6EFF]/10">
+                            <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
+                            Предстоящие записи
+                          </h3>
 
-                            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Doctor:
-                              </span>
-                              <span className="ml-2 text-blue-700 dark:text-blue-300 font-medium">
-                                Dr. {record.appointment.doctor.user.firstName}{" "}
-                                {record.appointment.doctor.user.lastName}
-                              </span>
-                            </div>
-
-                            <div className="mt-3">
-                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Doctor's Notes:
-                              </p>
-                              <p className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-300 p-4 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                                {record.doctorNotes}
+                          {upcomingAppointments.length === 0 ? (
+                            <div className="text-center py-8">
+                              <p className="text-[#243352]/70">
+                                Нет предстоящих записей
                               </p>
                             </div>
-                          </div>
-                        ))}
+                          ) : (
+                            <div className="space-y-4">
+                              {upcomingAppointments.map((appointment) => (
+                                <div
+                                  key={appointment.id}
+                                  className="flex justify-between p-4 border border-[#0A6EFF]/10 rounded-lg hover:shadow-md transition-shadow bg-[#0A6EFF]/5"
+                                >
+                                  <div>
+                                    <p className="font-medium text-[#243352]">
+                                      {appointment.title || "Прием"}
+                                    </p>
+                                    <p className="text-sm text-[#243352]/70 mt-1">
+                                      {user.role !== "DOCTOR" &&
+                                        appointment.doctor && (
+                                          <>
+                                            Др.{" "}
+                                            {appointment.doctor.user.firstName}{" "}
+                                            {appointment.doctor.user.lastName}
+                                          </>
+                                        )}
+                                      {user.role === "DOCTOR" &&
+                                        appointment.patient && (
+                                          <>
+                                            {appointment.patient.user.firstName}{" "}
+                                            {appointment.patient.user.lastName}
+                                          </>
+                                        )}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium text-[#0A6EFF]">
+                                      {format(
+                                        new Date(appointment.startTime),
+                                        "d MMMM yyyy",
+                                        { locale: ru }
+                                      )}
+                                    </p>
+                                    <p className="text-sm text-[#243352]/70 mt-1 bg-white px-3 py-1 rounded-full inline-block">
+                                      {format(
+                                        new Date(appointment.startTime),
+                                        "HH:mm"
+                                      )}{" "}
+                                      -{" "}
+                                      {format(
+                                        new Date(appointment.endTime),
+                                        "HH:mm"
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Past Appointments */}
+                        <div>
+                          <h3 className="font-medium mb-4 flex items-center text-[#243352] pb-2 border-b border-[#0A6EFF]/10">
+                            <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
+                            Прошедшие записи
+                          </h3>
+
+                          {pastAppointments.length === 0 ? (
+                            <div className="text-center py-8">
+                              <p className="text-[#243352]/70">
+                                Нет прошедших записей
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {pastAppointments.slice(0, 5).map((appointment) => (
+                                <div
+                                  key={appointment.id}
+                                  className="flex justify-between p-4 border border-[#0A6EFF]/10 rounded-lg hover:shadow-md transition-shadow"
+                                >
+                                  <div>
+                                    <p className="font-medium text-[#243352]">
+                                      {appointment.title || "Прием"}
+                                    </p>
+                                    <p className="text-sm text-[#243352]/70 mt-1">
+                                      {user.role !== "DOCTOR" &&
+                                        appointment.doctor && (
+                                          <>
+                                            Др.{" "}
+                                            {appointment.doctor.user.firstName}{" "}
+                                            {appointment.doctor.user.lastName}
+                                          </>
+                                        )}
+                                      {user.role === "DOCTOR" &&
+                                        appointment.patient && (
+                                          <>
+                                            {appointment.patient.user.firstName}{" "}
+                                            {appointment.patient.user.lastName}
+                                          </>
+                                        )}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium text-[#0A6EFF]">
+                                      {format(
+                                        new Date(appointment.startTime),
+                                        "d MMMM yyyy",
+                                        { locale: ru }
+                                      )}
+                                    </p>
+                                    <p className="text-sm text-[#243352]/70 mt-1 bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-block">
+                                      {format(
+                                        new Date(appointment.startTime),
+                                        "HH:mm"
+                                      )}{" "}
+                                      -{" "}
+                                      {format(
+                                        new Date(appointment.endTime),
+                                        "HH:mm"
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {pastAppointments.length > 5 && (
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  className="w-full mt-4 bg-white text-[#0A6EFF] border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 h-11"
+                                >
+                                  <a href="/calendar">Просмотреть все записи</a>
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
-            )}
-
-            {/* Appointments Tab */}
-            <TabsContent value="appointments">
-              <Card className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 shadow-md">
-                <CardHeader className="border-b border-blue-100 dark:border-gray-700">
-                  <CardTitle className="text-xl text-blue-800 dark:text-blue-300">
-                    My Appointments
-                  </CardTitle>
-                  <CardDescription className="text-blue-600/70 dark:text-blue-400/70">
-                    View your upcoming and past appointments
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {loadingAppointments ? (
-                    <div className="flex justify-center py-12 text-blue-700 dark:text-blue-300">
-                      <div className="animate-pulse">
-                        Loading appointments...
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-8">
-                      {/* Upcoming Appointments */}
-                      <div>
-                        <h3 className="font-medium mb-4 flex items-center text-blue-800 dark:text-blue-300 pb-2 border-b border-blue-100 dark:border-gray-700">
-                          <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-                          Upcoming Appointments
-                        </h3>
-
-                        {upcomingAppointments.length === 0 ? (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500 dark:text-gray-400">
-                              No upcoming appointments
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {upcomingAppointments.map((appointment) => (
-                              <div
-                                key={appointment.id}
-                                className="flex justify-between p-4 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg hover:shadow-md transition-shadow"
-                              >
-                                <div>
-                                  <p className="font-medium text-blue-800 dark:text-blue-300">
-                                    {appointment.title || "Appointment"}
-                                  </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {user.role !== "DOCTOR" &&
-                                      appointment.doctor && (
-                                        <>
-                                          Dr.{" "}
-                                          {appointment.doctor.user.firstName}{" "}
-                                          {appointment.doctor.user.lastName}
-                                        </>
-                                      )}
-                                    {user.role === "DOCTOR" &&
-                                      appointment.patient && (
-                                        <>
-                                          {appointment.patient.user.firstName}{" "}
-                                          {appointment.patient.user.lastName}
-                                        </>
-                                      )}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                                    {format(
-                                      new Date(appointment.startTime),
-                                      "MMMM d, yyyy"
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
-                                    {format(
-                                      new Date(appointment.startTime),
-                                      "h:mm a"
-                                    )}{" "}
-                                    -{" "}
-                                    {format(
-                                      new Date(appointment.endTime),
-                                      "h:mm a"
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Past Appointments */}
-                      <div>
-                        <h3 className="font-medium mb-4 flex items-center text-blue-800 dark:text-blue-300 pb-2 border-b border-blue-100 dark:border-gray-700">
-                          <Calendar className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-                          Past Appointments
-                        </h3>
-
-                        {pastAppointments.length === 0 ? (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500 dark:text-gray-400">
-                              No past appointments
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {pastAppointments.slice(0, 5).map((appointment) => (
-                              <div
-                                key={appointment.id}
-                                className="flex justify-between p-4 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg hover:shadow-md transition-shadow"
-                              >
-                                <div>
-                                  <p className="font-medium text-blue-800 dark:text-blue-300">
-                                    {appointment.title || "Appointment"}
-                                  </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {user.role !== "DOCTOR" &&
-                                      appointment.doctor && (
-                                        <>
-                                          Dr.{" "}
-                                          {appointment.doctor.user.firstName}{" "}
-                                          {appointment.doctor.user.lastName}
-                                        </>
-                                      )}
-                                    {user.role === "DOCTOR" &&
-                                      appointment.patient && (
-                                        <>
-                                          {appointment.patient.user.firstName}{" "}
-                                          {appointment.patient.user.lastName}
-                                        </>
-                                      )}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                                    {format(
-                                      new Date(appointment.startTime),
-                                      "MMMM d, yyyy"
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
-                                    {format(
-                                      new Date(appointment.startTime),
-                                      "h:mm a"
-                                    )}{" "}
-                                    -{" "}
-                                    {format(
-                                      new Date(appointment.endTime),
-                                      "h:mm a"
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-
-                            {pastAppointments.length > 5 && (
-                              <Button
-                                asChild
-                                variant="outline"
-                                className="w-full mt-4 bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-700 h-11 transition-colors"
-                              >
-                                <a href="/calendar">View All Appointments</a>
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </Tabs>
+          </div>
         </div>
       </div>
 
       {/* Edit Profile Dialog */}
       <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
+        <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-              Edit Profile
+            <DialogTitle className="text-2xl font-bold text-[#243352]">
+              Редактирование профиля
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              Update your personal information
+            <DialogDescription className="text-[#243352]/70">
+              Обновите вашу личную информацию
             </DialogDescription>
           </DialogHeader>
 
@@ -500,9 +525,9 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="firstName"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                First Name
+                Имя
               </Label>
               <Input
                 id="firstName"
@@ -513,16 +538,16 @@ export default function ProfilePage() {
                     firstName: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="lastName"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Last Name
+                Фамилия
               </Label>
               <Input
                 id="lastName"
@@ -533,16 +558,16 @@ export default function ProfilePage() {
                     lastName: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Phone Number
+                Номер телефона
               </Label>
               <Input
                 id="phone"
@@ -553,14 +578,14 @@ export default function ProfilePage() {
                     phone: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
                 Email
               </Label>
@@ -568,10 +593,10 @@ export default function ProfilePage() {
                 id="email"
                 value={user.email}
                 disabled
-                className="bg-gray-100 dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700"
+                className="bg-[#F8FAFC] border-2 border-[#0A6EFF]/10"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Email cannot be changed
+              <p className="text-xs text-[#243352]/70">
+                Email нельзя изменить
               </p>
             </div>
           </div>
@@ -580,16 +605,16 @@ export default function ProfilePage() {
             <Button
               variant="outline"
               onClick={() => setShowProfileDialog(false)}
-              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               onClick={handleUpdateProfile}
               disabled={updateUser.isLoading}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
+              className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {updateUser.isLoading ? "Saving..." : "Save Changes"}
+              {updateUser.isLoading ? "Сохранение..." : "Сохранить изменения"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -597,13 +622,13 @@ export default function ProfilePage() {
 
       {/* Change Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
+        <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-              Change Password
+            <DialogTitle className="text-2xl font-bold text-[#243352]">
+              Изменение пароля
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              Update your password
+            <DialogDescription className="text-[#243352]/70">
+              Обновите ваш пароль
             </DialogDescription>
           </DialogHeader>
 
@@ -611,9 +636,9 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="currentPassword"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Current Password
+                Текущий пароль
               </Label>
               <Input
                 id="currentPassword"
@@ -625,16 +650,16 @@ export default function ProfilePage() {
                     currentPassword: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="newPassword"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                New Password
+                Новый пароль
               </Label>
               <Input
                 id="newPassword"
@@ -646,16 +671,16 @@ export default function ProfilePage() {
                     newPassword: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="confirmPassword"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Confirm New Password
+                Подтвердите новый пароль
               </Label>
               <Input
                 id="confirmPassword"
@@ -667,7 +692,7 @@ export default function ProfilePage() {
                     confirmPassword: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
           </div>
@@ -676,16 +701,16 @@ export default function ProfilePage() {
             <Button
               variant="outline"
               onClick={() => setShowPasswordDialog(false)}
-              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               onClick={handleUpdatePassword}
               disabled={updatePassword.isLoading}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
+              className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {updatePassword.isLoading ? "Updating..." : "Update Password"}
+              {updatePassword.isLoading ? "Обновление..." : "Обновить пароль"}
             </Button>
           </DialogFooter>
         </DialogContent>

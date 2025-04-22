@@ -1,126 +1,92 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { useRouter } from "next/navigation";
+import {
+  CalendarDays,
+  Users,
+  ClipboardCheck,
+  UserCheck,
+  BellRing,
+  ActivitySquare,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
-import Providers from "./providers";
-import { Navbar } from "@/components/Navbar";
-import { Toaster } from "@/components/ui/toaster";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppointments, useDoctors, usePatients } from "@/lib/hooks/useQueries";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { AppointmentStatus } from "@prisma/client";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { user, isAuthenticated, loading } = useAuth();
+export default function DashboardPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-  const [clientSide, setClientSide] = useState(false);
-
+  const [isClient, setIsClient] = useState(false);
+  
   useEffect(() => {
-    setClientSide(true);
-    // Wait a short time to ensure auth state is loaded properly
-    const timer = setTimeout(() => {
-      setInitialized(true);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    setIsClient(true);
   }, []);
-
-  useEffect(() => {
-    // Only redirect after the component has mounted and auth has been checked
-    if (
-      initialized &&
-      !loading &&
-      !isAuthenticated &&
-      !isRedirecting &&
-      !pathname.includes("/login") &&
-      !pathname.includes("/register")
-    ) {
-      console.log("Not authenticated, redirecting to login");
-      setIsRedirecting(true);
-      router.push("/login");
-    }
-  }, [isAuthenticated, loading, router, isRedirecting, initialized, pathname]);
-
-  if (!clientSide) {
+  
+  if (!isClient) {
     return (
-      <html lang="en">
-        <body className={inter.className}>
-          <Providers>
-            <main className="min-h-screen bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800">
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-pulse text-blue-600 dark:text-blue-400 font-medium">
-                  Loading...
-                </div>
-              </div>
-            </main>
-            <Toaster />
-          </Providers>
-        </body>
-      </html>
+      <div className="ml-0 lg:ml-64 p-6">
+        <div className="flex justify-center py-12 text-[#0A6EFF]">
+          <div className="animate-pulse">Загрузка...</div>
+        </div>
+      </div>
     );
   }
+  
+  return <Dashboard />;
+}
 
-  if (loading || !initialized) {
-    return (
-      <html lang="en">
-        <body className={inter.className}>
-          <Providers>
-            <main className="min-h-screen bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800">
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-pulse text-blue-600 dark:text-blue-400 font-medium">
-                  Loading...
-                </div>
-              </div>
-            </main>
-            <Toaster />
-          </Providers>
-        </body>
-      </html>
-    );
+function Dashboard() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { data: appointments = [] } = useAppointments();
+  const { data: doctors = [] } = useDoctors();
+  const { data: patients = [] } = usePatients();
+
+  const todayAppointments = appointments.filter(
+    (app) => 
+      format(new Date(app.startTime), "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") &&
+      app.status === AppointmentStatus.BOOKED
+  );
+
+  const upcomingAppointments = appointments.filter(
+    (app) => 
+      new Date(app.startTime) > new Date() &&
+      app.status === AppointmentStatus.BOOKED
+  );
+
+  const completedAppointments = appointments.filter(
+    (app) => app.status === AppointmentStatus.OCCUPIED
+  );
+
+
+  if (!user || user.role === "PATIENT") {
+    return null;
   }
-
-  const showNavbar = isAuthenticated && user;
-  const isAuthRoute =
-    pathname.includes("/login") || pathname.includes("/register");
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Providers>
-          <main className="min-h-screen bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800">
-            {showNavbar && !isAuthRoute && <Navbar />}
-            {isAuthRoute ? (
-              <div className="flex items-center justify-center min-h-screen p-4">
-                <div className="w-full max-w-md space-y-8">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-extrabold text-blue-700 dark:text-blue-300">
-                      Happy Patient
-                    </h1>
-                    <p className="mt-3 text-sm text-blue-600/70 dark:text-blue-400/70">
-                      Medical center appointment management system
-                    </p>
-                  </div>
-                  <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 border-2 border-blue-100 dark:border-blue-900/30">
-                    {children}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="container mx-auto px-4 py-8">{children}</div>
-            )}
-          </main>
-          <Toaster />
-        </Providers>
-      </body>
-    </html>
+    <div className="ml-0 lg:ml-64 p-6">
+      <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-[#0A6EFF]/10">
+          <div>
+            <h1 className="text-2xl font-bold text-[#243352]">Панель управления</h1>
+            <p className="text-[#243352]/70 mt-1">
+              Добро пожаловать, {user.firstName} {user.lastName}!
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <div className="bg-[#0A6EFF]/5 px-4 py-2 rounded-lg">
+              <p className="text-[#243352] font-medium">
+                Сегодня: {format(new Date(), "dd MMMM yyyy", { locale: ru })}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

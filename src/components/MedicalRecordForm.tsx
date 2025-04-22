@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { Appointment } from "@/lib/types";
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import {
+  FileText,
+  UserCircle,
+  Calendar,
+  Clock,
+  Stethoscope,
+} from "lucide-react";
 
 import {
   Dialog,
@@ -41,8 +49,8 @@ export function MedicalRecordForm({
   const handleSubmit = async () => {
     if (!appointment || !doctorNotes.trim()) {
       toast({
-        title: "Missing information",
-        description: "Please provide the medical notes.",
+        title: "Отсутствует информация",
+        description: "Пожалуйста, введите заключение врача.",
         variant: "destructive",
       });
       return;
@@ -55,16 +63,15 @@ export function MedicalRecordForm({
       });
 
       toast({
-        title: "Medical record saved",
-        description: "The medical record has been saved successfully.",
+        title: "Медицинская запись сохранена",
+        description: "Медицинская запись была успешно сохранена.",
       });
 
       onClose();
     } catch (error: any) {
       toast({
-        title: "Failed to save medical record",
-        description:
-          error.message || "An error occurred while saving the medical record.",
+        title: "Ошибка сохранения",
+        description: error.message || "Произошла ошибка при сохранении записи.",
         variant: "destructive",
       });
     }
@@ -74,28 +81,40 @@ export function MedicalRecordForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg">
+      <DialogContent className="sm:max-w-[600px] bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+          <DialogTitle className="text-2xl font-bold text-[#243352] flex items-center">
+            <FileText className="h-6 w-6 mr-2 text-[#0A6EFF]" />
             {appointment.medicalRecord
-              ? "Edit Medical Record"
-              : "Add Medical Record"}
+              ? "Редактирование медицинской записи"
+              : "Новая медицинская запись"}
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-[#243352]/70">
             {appointment.patient?.user && (
-              <span className="block text-blue-700 dark:text-blue-300 font-medium text-lg">
-                Patient: {appointment.patient.user.firstName}{" "}
+              <span className="block text-[#0A6EFF] font-medium text-lg flex items-center">
+                <UserCircle className="h-5 w-5 mr-2" />
+                Пациент: {appointment.patient.user.firstName}{" "}
                 {appointment.patient.user.lastName}
               </span>
             )}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
-              <span className="text-sm bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
-                Date: {format(new Date(appointment.startTime), "MMMM d, yyyy")}
+              <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                {format(new Date(appointment.startTime), "d MMMM yyyy", {
+                  locale: ru,
+                })}
               </span>
-              <span className="text-sm bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
-                Time: {format(new Date(appointment.startTime), "h:mm a")} -{" "}
-                {format(new Date(appointment.endTime), "h:mm a")}
+              <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+                <Clock className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                {format(new Date(appointment.startTime), "HH:mm")} -{" "}
+                {format(new Date(appointment.endTime), "HH:mm")}
               </span>
+              {appointment.doctor?.specialization && (
+                <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+                  <Stethoscope className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                  {appointment.doctor.specialization}
+                </span>
+              )}
             </div>
           </DialogDescription>
         </DialogHeader>
@@ -104,13 +123,13 @@ export function MedicalRecordForm({
           <div className="mb-4">
             <Label
               htmlFor="symptoms"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"
+              className="text-sm font-medium text-[#243352] mb-2 block"
             >
-              Patient Symptoms / Reason for Visit
+              Жалобы пациента / Причина визита
             </Label>
             <div
               id="symptoms"
-              className="mt-1 p-4 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-gray-700 dark:text-gray-300"
+              className="mt-1 p-4 border-2 border-[#0A6EFF]/10 rounded-lg bg-[#0A6EFF]/5 text-[#243352] whitespace-pre-wrap"
             >
               {appointment.symptoms}
             </div>
@@ -120,17 +139,17 @@ export function MedicalRecordForm({
         <div className="mb-4">
           <Label
             htmlFor="doctorNotes"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"
+            className="text-sm font-medium text-[#243352] mb-2 block"
           >
-            Doctor Notes (analysis, complaints, conclusions)
+            Заключение врача (анализ, диагноз, рекомендации)
           </Label>
           <Textarea
             id="doctorNotes"
             value={doctorNotes}
             onChange={(e) => setDoctorNotes(e.target.value)}
             rows={8}
-            placeholder="Enter your medical notes, including analysis, patient complaints, and conclusions..."
-            className="resize-none border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            placeholder="Введите ваше заключение, включая анализ состояния пациента, диагноз и рекомендации..."
+            className="resize-none border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
           />
         </div>
 
@@ -138,18 +157,18 @@ export function MedicalRecordForm({
           <Button
             variant="outline"
             onClick={onClose}
-            className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+            className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
           >
-            Cancel
+            Отмена
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={completeAppointment.isLoading}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
+            className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
           >
             {completeAppointment.isLoading
-              ? "Saving..."
-              : "Save Medical Record"}
+              ? "Сохранение..."
+              : "Сохранить запись"}
           </Button>
         </DialogFooter>
       </DialogContent>

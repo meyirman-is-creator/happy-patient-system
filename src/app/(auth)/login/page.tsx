@@ -1,4 +1,3 @@
-// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -32,49 +31,66 @@ export default function LoginPage() {
 
     if (!formData.email || !formData.password) {
       toast({
-        title: "Missing information",
-        description: "Please enter your email and password.",
+        title: "Отсутствует информация",
+        description: "Пожалуйста, введите email и пароль.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      console.log("Login attempt with:", { email: formData.email });
+      console.log("Попытка входа с:", { email: formData.email });
       await login.mutateAsync(formData);
-      console.log("Login successful!");
+      console.log("Вход успешен!");
       // Redirect is handled in the useAuth hook
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Ошибка входа:", error);
       toast({
-        title: "Login failed",
-        description: error.message || "An error occurred during login.",
+        title: "Ошибка входа",
+        description: error.message || "Произошла ошибка при входе.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
+    <div className="bg-white rounded-xl shadow-lg p-8 border border-[#0A6EFF]/10">
+      <div className="text-center mb-8">
+        <div className="mx-auto w-16 h-16 rounded-full bg-[#0A6EFF] flex items-center justify-center mb-4">
+          <HeartPulse className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold mb-1 text-[#243352]">
+          Вход в систему
+        </h2>
+        <p className="text-[#243352]/70 text-sm">
+          Введите данные для доступа к системе
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="john.doe@example.com"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+          <Label htmlFor="email" className="text-[#243352] font-medium">
+            Email
+          </Label>
+          <div className="relative">
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@mail.ru"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-[#243352] font-medium">
+              Пароль
+            </Label>
           </div>
           <div className="relative">
             <Input
@@ -85,7 +101,7 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="pr-10"
+              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 pr-10"
             />
             <button
               type="button"
@@ -93,27 +109,52 @@ export default function LoginPage() {
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                <EyeOff className="h-5 w-5 text-[#243352]/60" />
               ) : (
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-5 w-5 text-[#243352]/60" />
               )}
             </button>
           </div>
         </div>
 
-        {error && <div className="text-destructive text-sm mt-2">{error}</div>}
+        {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
+        <Button
+          type="submit"
+          className="w-full h-12 text-base font-medium bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
+          disabled={loading}
+        >
+          {loading ? "Выполняется вход..." : "Войти"}
         </Button>
       </form>
 
       <div className="mt-6 text-center text-sm">
-        Don't have an account?{" "}
-        <Link href="/register" className="text-primary hover:underline">
-          Sign up
+        Нет аккаунта?{" "}
+        <Link
+          href="/register"
+          className="text-[#0A6EFF] font-medium hover:underline"
+        >
+          Зарегистрироваться
         </Link>
       </div>
     </div>
+  );
+}
+
+function HeartPulse(props: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+      <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />
+    </svg>
   );
 }

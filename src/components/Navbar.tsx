@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  CalendarIcon,
-  UsersIcon,
-  UserIcon,
-  LayoutDashboardIcon,
-  LogOutIcon,
-  MenuIcon,
-  X,
+  CalendarDays,
+  Users,
+  UserCircle,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  HeartPulse,
+  Home,
 } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -28,46 +29,50 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || !user) return null;
+  if (!mounted) return null;
 
   const navItems = [
-    ...(user.role !== "PATIENT"
-      ? [
-          {
-            href: "/",
-            label: "Dashboard",
-            icon: <LayoutDashboardIcon className="h-5 w-5 mr-2" />,
-          },
-        ]
-      : []),
+    {
+      href: "/",
+      label: "Главная",
+      icon: <Home className="h-5 w-5 mr-2" />,
+      roles: ["PATIENT", "DOCTOR", "ADMIN"],
+    },
     {
       href: "/calendar",
-      label: "Calendar",
-      icon: <CalendarIcon className="h-5 w-5 mr-2" />,
+      label: "Календарь",
+      icon: <CalendarDays className="h-5 w-5 mr-2" />,
+      roles: ["PATIENT", "DOCTOR", "ADMIN"],
     },
     {
       href: "/listing",
       label:
-        user.role === "PATIENT"
-          ? "Doctors"
-          : user.role === "DOCTOR"
-          ? "My Patients"
-          : "Manage Users",
-      icon: <UsersIcon className="h-5 w-5 mr-2" />,
+        user?.role === "PATIENT"
+          ? "Врачи"
+          : user?.role === "DOCTOR"
+          ? "Мои пациенты"
+          : "Управление пользователями",
+      icon: <Users className="h-5 w-5 mr-2" />,
+      roles: ["PATIENT", "DOCTOR", "ADMIN"],
     },
     {
       href: "/profile",
-      label: "Profile",
-      icon: <UserIcon className="h-5 w-5 mr-2" />,
+      label: "Профиль",
+      icon: <UserCircle className="h-5 w-5 mr-2" />,
+      roles: ["PATIENT", "DOCTOR", "ADMIN"],
     },
   ];
+
+  const filteredNavItems = user?.role
+    ? navItems.filter((item) => item.roles.includes(user.role))
+    : [];
 
   const getInitials = () => {
     if (!user) return "";
@@ -77,132 +82,145 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b-2 border-blue-100 dark:border-blue-950/30 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link
-                href={user.role === "PATIENT" ? "/calendar" : "/"}
-                className="font-bold text-xl text-blue-700 dark:text-blue-300"
+    <>
+      {/* Top navbar */}
+      <nav className="bg-white border-b border-[#0A6EFF]/10 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <button
+                className="p-2 rounded-md text-[#243352] hover:bg-[#0A6EFF]/5 lg:hidden"
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
               >
-                Happy Patient
+                <Menu className="h-6 w-6" />
+              </button>
+              <Link href="/" className="flex items-center ml-2 lg:ml-0">
+                <div className="w-10 h-10 rounded-full bg-[#0A6EFF] flex items-center justify-center">
+                  <HeartPulse className="h-6 w-6 text-white" />
+                </div>
+                <span className="ml-2 font-bold text-xl text-[#243352]">
+                  Happy Patient
+                </span>
               </Link>
             </div>
 
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg ${
-                      isActive
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300"
-                    } transition-colors`}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <div className="flex items-center">
+              {user && (
+                <>
+                  <span className="hidden md:block mr-4 text-[#243352]">
+                    {user.firstName} {user.lastName}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="relative h-10 w-10 rounded-full hover:bg-[#0A6EFF]/5"
+                      >
+                        <Avatar className="h-full w-full bg-[#0A6EFF]/10">
+                          <AvatarFallback className="text-[#0A6EFF] font-medium">
+                            {getInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-56 bg-white border border-[#0A6EFF]/10 rounded-lg shadow-lg"
+                    >
+                      <DropdownMenuLabel className="text-[#243352] font-medium">
+                        Мой аккаунт
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-[#0A6EFF]/10" />
+                      <DropdownMenuItem
+                        asChild
+                        className="hover:bg-[#0A6EFF]/5 rounded-md cursor-pointer"
+                      >
+                        <Link
+                          href="/profile"
+                          className="text-[#243352] hover:text-[#0A6EFF]"
+                        >
+                          <UserCircle className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                          Профиль
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={logout}
+                        className="hover:bg-[#0A6EFF]/5 rounded-md cursor-pointer text-[#243352] hover:text-[#0A6EFF]"
+                      >
+                        <LogOut className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                        Выйти
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
             </div>
           </div>
+        </div>
+      </nav>
 
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+      {/* Sidebar */}
+      <div className="flex h-screen">
+        <aside
+          className={`fixed inset-y-0 left-0 top-16 transform ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 lg:static lg:inset-auto lg:flex w-64 bg-white border-r border-[#0A6EFF]/10 shadow-sm transition-transform duration-300 ease-in-out z-20`}
+        >
+          <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+            <div className="flex-grow flex flex-col">
+              <div className="px-4 mb-6">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#243352]/60">
+                  Меню
+                </span>
+              </div>
+              <nav className="flex-1 px-2 space-y-2">
+                {filteredNavItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center px-4 py-3 text-base rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-[#0A6EFF]/10 text-[#0A6EFF] font-medium"
+                          : "text-[#243352] hover:bg-[#0A6EFF]/5 hover:text-[#0A6EFF]"
+                      }`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      {React.cloneElement(item.icon, {
+                        className: `${
+                          isActive ? "text-[#0A6EFF]" : "text-[#243352]"
+                        } h-5 w-5 mr-3`,
+                      })}
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+            {user && (
+              <div className="px-4 py-4">
                 <Button
-                  variant="ghost"
-                  className="relative h-10 w-10 rounded-full border-2 border-blue-100 dark:border-blue-900/40 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                >
-                  <Avatar className="h-full w-full bg-blue-100 dark:bg-blue-900/30">
-                    <AvatarFallback className="text-blue-700 dark:text-blue-300 font-medium">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg shadow-lg"
-              >
-                <DropdownMenuLabel className="text-blue-800 dark:text-blue-300 font-medium">
-                  My Account
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-blue-100 dark:bg-blue-900/30" />
-                <DropdownMenuItem
-                  asChild
-                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md cursor-pointer"
-                >
-                  <Link
-                    href="/profile"
-                    className="text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                  >
-                    <UserIcon className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
                   onClick={logout}
-                  className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md cursor-pointer text-gray-700 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  className="w-full justify-start bg-white hover:bg-[#0A6EFF]/5 text-[#243352] hover:text-[#0A6EFF] border-2 border-[#0A6EFF]/10"
+                  variant="outline"
                 >
-                  <LogOutIcon className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <LogOut className="h-5 w-5 mr-3" />
+                  Выйти
+                </Button>
+              </div>
+            )}
           </div>
+        </aside>
 
-          <div className="flex items-center sm:hidden">
-            <Button
-              variant="ghost"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <MenuIcon className="h-6 w-6" />
-              )}
-            </Button>
-          </div>
-        </div>
+        {/* Mobile sidebar backdrop */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-10 bg-black bg-opacity-30 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
       </div>
-
-      {isMobileMenuOpen && (
-        <div className="sm:hidden border-t border-blue-100 dark:border-gray-800">
-          <div className="pt-2 pb-3 space-y-1 px-4">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 text-base font-medium rounded-lg ${
-                    isActive
-                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300"
-                  } transition-colors`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              );
-            })}
-            <button
-              onClick={logout}
-              className="flex w-full items-center px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 rounded-lg transition-colors"
-            >
-              <LogOutIcon className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
-    </nav>
+    </>
   );
 }

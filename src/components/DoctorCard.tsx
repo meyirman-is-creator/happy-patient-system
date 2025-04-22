@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, User, Clipboard } from "lucide-react";
+import {
+  Calendar,
+  Mail,
+  Phone,
+  GraduationCap,
+  Stethoscope,
+} from "lucide-react";
 
 import {
   Card,
@@ -42,58 +48,59 @@ export function DoctorCard({
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
   return (
-    <Card className="flex flex-col h-full border-2 border-blue-100 dark:border-blue-900/30 bg-white dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-3 border-b border-blue-100 dark:border-gray-700">
+    <Card className="flex flex-col h-full border border-[#0A6EFF]/10 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <CardHeader className="pb-3 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
         <div className="flex items-center gap-4">
-          <Avatar className="h-14 w-14 bg-blue-100 dark:bg-blue-900/30 ring-4 ring-blue-500/20 dark:ring-blue-400/20">
-            <AvatarFallback className="text-lg font-bold text-blue-700 dark:text-blue-300">
+          <Avatar className="h-16 w-16 bg-[#0A6EFF]/10 ring-4 ring-[#0A6EFF]/20">
+            <AvatarFallback className="text-xl font-bold text-[#0A6EFF]">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle className="text-xl text-blue-800 dark:text-blue-300">
-              Dr. {user.firstName} {user.lastName}
+            <CardTitle className="text-xl text-[#243352]">
+              Др. {user.firstName} {user.lastName}
             </CardTitle>
-            <CardDescription className="text-blue-600/70 dark:text-blue-400/70 font-medium">
-              {doctor.specialization || "General Practitioner"}
+            <CardDescription className="text-[#0A6EFF] font-medium">
+              {doctor.specialization || "Врач общей практики"}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="flex-grow pt-4">
         {doctor.education && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">
-              Education
-            </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {doctor.education}
-            </p>
+          <div className="mb-4 p-3 bg-[#0A6EFF]/5 rounded-lg">
+            <div className="flex items-center gap-2 mb-1">
+              <GraduationCap className="h-4 w-4 text-[#0A6EFF]" />
+              <p className="text-sm font-medium text-[#243352]">Образование</p>
+            </div>
+            <p className="text-sm text-[#243352]/80">{doctor.education}</p>
           </div>
         )}
         <div className="flex flex-col gap-3 mt-4">
           <div className="flex items-center gap-3 text-sm">
-            <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-gray-700 dark:text-gray-300">
-              {user.email}
+            <Stethoscope className="h-4 w-4 text-[#0A6EFF]" />
+            <span className="text-[#243352]">
+              Опыт работы: <span className="font-medium">7 лет</span>
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <Clipboard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-gray-700 dark:text-gray-300">
-              {user.phone}
-            </span>
+            <Mail className="h-4 w-4 text-[#0A6EFF]" />
+            <span className="text-[#243352]">{user.email}</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <Phone className="h-4 w-4 text-[#0A6EFF]" />
+            <span className="text-[#243352]">{user.phone}</span>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between pt-4 border-t border-blue-100 dark:border-gray-700">
+      <CardFooter className="flex justify-between pt-4 border-t border-[#0A6EFF]/10">
         <Button
           asChild
-          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+          className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
         >
           <Link href={`/calendar?doctorId=${doctor.id}`}>
             <Calendar className="h-4 w-4 mr-2" />
-            View Schedule
+            Расписание
           </Link>
         </Button>
 
@@ -103,9 +110,9 @@ export function DoctorCard({
               variant="outline"
               size="sm"
               onClick={() => onEdit?.(doctor)}
-              className="border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 transition-colors"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
-              Edit
+              Изменить
             </Button>
 
             <Dialog>
@@ -113,35 +120,35 @@ export function DoctorCard({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800 text-white transition-colors"
+                  className="bg-red-600 hover:bg-red-700 text-white"
                 >
-                  Delete
+                  Удалить
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg">
+              <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold text-blue-800 dark:text-blue-300">
-                    Delete Doctor
+                  <DialogTitle className="text-xl font-bold text-[#243352]">
+                    Удаление врача
                   </DialogTitle>
-                  <DialogDescription className="text-gray-600 dark:text-gray-400">
-                    Are you sure you want to delete Dr. {user.firstName}{" "}
-                    {user.lastName}? This action cannot be undone.
+                  <DialogDescription className="text-[#243352]/70">
+                    Вы уверены, что хотите удалить Др. {user.firstName}{" "}
+                    {user.lastName}? Это действие нельзя отменить.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="gap-3 mt-4">
                   <Button
                     variant="outline"
                     onClick={(e) => e.preventDefault()}
-                    className="border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 transition-colors"
+                    className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
                   >
-                    Cancel
+                    Отмена
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => onDelete?.(doctor.id)}
-                    className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800 text-white transition-colors"
+                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    Delete
+                    Удалить
                   </Button>
                 </DialogFooter>
               </DialogContent>

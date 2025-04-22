@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, X, Filter, Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,13 +92,13 @@ export default function ListingPage() {
     try {
       await deleteDoctor.mutateAsync(doctorId);
       toast({
-        title: "Doctor deleted",
-        description: "The doctor has been removed from the system.",
+        title: "Врач удален",
+        description: "Врач был успешно удален из системы.",
       });
     } catch (error: any) {
       toast({
-        title: "Failed to delete doctor",
-        description: error.message || "An error occurred during deletion.",
+        title: "Ошибка удаления",
+        description: error.message || "Произошла ошибка при удалении врача.",
         variant: "destructive",
       });
     }
@@ -134,16 +134,15 @@ export default function ListingPage() {
         });
 
         toast({
-          title: "Doctor updated",
-          description: "The doctor information has been updated.",
+          title: "Врач обновлен",
+          description: "Информация о враче была успешно обновлена.",
         });
       } else {
         // Create new doctor
         if (!doctorFormData.password) {
           toast({
-            title: "Missing password",
-            description:
-              "Please provide a password for the new doctor account.",
+            title: "Отсутствует пароль",
+            description: "Пожалуйста, укажите пароль для нового аккаунта врача.",
             variant: "destructive",
           });
           return;
@@ -152,16 +151,16 @@ export default function ListingPage() {
         await createDoctor.mutateAsync(doctorFormData);
 
         toast({
-          title: "Doctor created",
-          description: "The new doctor has been added to the system.",
+          title: "Врач добавлен",
+          description: "Новый врач был успешно добавлен в систему.",
         });
       }
 
       setShowDoctorDialog(false);
     } catch (error: any) {
       toast({
-        title: "Operation failed",
-        description: error.message || "An error occurred.",
+        title: "Ошибка операции",
+        description: error.message || "Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -171,13 +170,13 @@ export default function ListingPage() {
     try {
       await confirmAppointment.mutateAsync(appointmentId);
       toast({
-        title: "Appointment confirmed",
-        description: "The patient has been marked as attended.",
+        title: "Прием подтвержден",
+        description: "Отмечено присутствие пациента.",
       });
     } catch (error: any) {
       toast({
-        title: "Failed to confirm attendance",
-        description: error.message || "An error occurred.",
+        title: "Ошибка подтверждения",
+        description: error.message || "Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -187,13 +186,13 @@ export default function ListingPage() {
     try {
       await cancelAppointment.mutateAsync(appointmentId);
       toast({
-        title: "Appointment cancelled",
-        description: "The patient has been marked as no-show.",
+        title: "Прием отменен",
+        description: "Отмечено отсутствие пациента.",
       });
     } catch (error: any) {
       toast({
-        title: "Failed to mark as no-show",
-        description: error.message || "An error occurred.",
+        title: "Ошибка отметки",
+        description: error.message || "Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -216,136 +215,155 @@ export default function ListingPage() {
       : "doctors";
 
   return (
-    <div className="p-6 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-sm space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-blue-100 dark:border-gray-700 pb-4">
-        <h1 className="text-3xl font-bold text-blue-800 dark:text-blue-300">
-          {user?.role === "PATIENT"
-            ? "Doctors Directory"
-            : user?.role === "DOCTOR"
-            ? "My Patients"
-            : "Manage Users"}
-        </h1>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-blue-500 dark:text-blue-400" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-10 h-12 bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+    <div className="ml-0 lg:ml-64 p-6">
+      <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#0A6EFF]/10 pb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-[#243352]">
+              {user?.role === "PATIENT"
+                ? "Справочник врачей"
+                : user?.role === "DOCTOR"
+                ? "Мои пациенты"
+                : "Управление пользователями"}
+            </h1>
+            {user?.role === "PATIENT" && (
+              <p className="text-[#243352]/70 mt-1">
+                Всего врачей: <span className="font-medium">{doctors.length}</span>
+              </p>
+            )}
           </div>
 
-          {user?.role === "ADMIN" && (
-            <Button
-              onClick={handleAddNewDoctor}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 h-12 px-5 rounded-lg shadow-sm transition-colors"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Doctor
-            </Button>
-          )}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-[#0A6EFF]" />
+              <Input
+                type="search"
+                placeholder="Поиск..."
+                className="pl-10 h-12 border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] rounded-lg"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="absolute right-3 top-3 text-[#243352]/60 hover:text-[#243352]"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {user?.role === "ADMIN" && (
+              <Button
+                onClick={handleAddNewDoctor}
+                className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white h-12 px-5 rounded-lg shadow-sm"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Добавить врача
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {user?.role === "ADMIN" ? (
-        <Tabs defaultValue={defaultTab} className="mt-6">
-          <TabsList className="bg-blue-100 dark:bg-gray-800 p-1 rounded-lg">
-            <TabsTrigger
-              value="doctors"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md px-6 py-2 transition-all"
-            >
-              Doctors
-            </TabsTrigger>
-            <TabsTrigger
-              value="patients"
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md px-6 py-2 transition-all"
-            >
-              Patients
-            </TabsTrigger>
-          </TabsList>
+        {user?.role === "ADMIN" ? (
+          <Tabs defaultValue={defaultTab} className="mt-6">
+            <TabsList className="bg-[#0A6EFF]/5 p-1 rounded-lg mb-6">
+              <TabsTrigger
+                value="doctors"
+                className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md px-6 py-2"
+              >
+                Врачи
+              </TabsTrigger>
+              <TabsTrigger
+                value="patients"
+                className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md px-6 py-2"
+              >
+                Пациенты
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="doctors" className="mt-6">
+            <TabsContent value="doctors" className="mt-6">
+              {loadingDoctors ? (
+                <div className="flex justify-center py-12 text-[#0A6EFF]">
+                  <div className="animate-pulse">Загрузка данных врачей...</div>
+                </div>
+              ) : filteredDoctors.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10">
+                  <p className="text-[#243352]/70">
+                    Врачи не найдены
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredDoctors.map((doctor) => (
+                    <DoctorCard
+                      key={doctor.id}
+                      doctor={doctor}
+                      isAdmin={user?.role === "ADMIN"}
+                      onEdit={handleEditDoctor}
+                      onDelete={handleDeleteDoctor}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="patients" className="mt-6">
+              <div className="bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10 p-6">
+                <PatientList
+                  appointments={appointments}
+                  isLoading={loadingAppointments}
+                  onMarkAttended={handleMarkAttended}
+                  onMarkMissed={handleMarkMissed}
+                  onAddNotes={handleAddMedicalRecord}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : user?.role === "DOCTOR" ? (
+          <div className="bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10 p-6 mt-6">
+            <PatientList
+              appointments={appointments}
+              isLoading={loadingAppointments}
+              onMarkAttended={handleMarkAttended}
+              onMarkMissed={handleMarkMissed}
+              onAddNotes={handleAddMedicalRecord}
+            />
+          </div>
+        ) : (
+          <div className="mt-6">
             {loadingDoctors ? (
-              <div className="flex justify-center py-12 text-blue-700 dark:text-blue-300">
-                <div className="animate-pulse">Loading doctors...</div>
+              <div className="flex justify-center py-12 text-[#0A6EFF]">
+                <div className="animate-pulse">Загрузка данных врачей...</div>
               </div>
             ) : filteredDoctors.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-md">
-                <p className="text-gray-500 dark:text-gray-400">
-                  No doctors found
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10">
+                <p className="text-[#243352]/70">
+                  Врачи не найдены
                 </p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredDoctors.map((doctor) => (
-                  <DoctorCard
-                    key={doctor.id}
-                    doctor={doctor}
-                    isAdmin={user?.role === "ADMIN"}
-                    onEdit={handleEditDoctor}
-                    onDelete={handleDeleteDoctor}
-                  />
+                  <DoctorCard key={doctor.id} doctor={doctor} />
                 ))}
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="patients" className="mt-6">
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4">
-              <PatientList
-                appointments={appointments}
-                isLoading={loadingAppointments}
-                onMarkAttended={handleMarkAttended}
-                onMarkMissed={handleMarkMissed}
-                onAddNotes={handleAddMedicalRecord}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-      ) : user?.role === "DOCTOR" ? (
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 mt-6">
-          <PatientList
-            appointments={appointments}
-            isLoading={loadingAppointments}
-            onMarkAttended={handleMarkAttended}
-            onMarkMissed={handleMarkMissed}
-            onAddNotes={handleAddMedicalRecord}
-          />
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
-          {loadingDoctors ? (
-            <div className="col-span-full flex justify-center py-12 text-blue-700 dark:text-blue-300">
-              <div className="animate-pulse">Loading doctors...</div>
-            </div>
-          ) : filteredDoctors.length === 0 ? (
-            <div className="text-center py-12 col-span-full bg-white dark:bg-gray-900 rounded-xl shadow-md">
-              <p className="text-gray-500 dark:text-gray-400">
-                No doctors found
-              </p>
-            </div>
-          ) : (
-            filteredDoctors.map((doctor) => (
-              <DoctorCard key={doctor.id} doctor={doctor} />
-            ))
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Add/Edit Doctor Dialog */}
       <Dialog open={showDoctorDialog} onOpenChange={setShowDoctorDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
+        <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-              {editingDoctor ? "Edit Doctor" : "Add New Doctor"}
+            <DialogTitle className="text-2xl font-bold text-[#243352]">
+              {editingDoctor ? "Редактировать врача" : "Добавить нового врача"}
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
+            <DialogDescription className="text-[#243352]/70">
               {editingDoctor
-                ? "Update the doctor's information below."
-                : "Fill in the details to add a new doctor to the system."}
+                ? "Обновите информацию о враче."
+                : "Заполните данные для добавления нового врача в систему."}
             </DialogDescription>
           </DialogHeader>
 
@@ -354,9 +372,9 @@ export default function ListingPage() {
               <div className="space-y-2">
                 <Label
                   htmlFor="firstName"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[#243352] font-medium"
                 >
-                  First Name
+                  Имя
                 </Label>
                 <Input
                   id="firstName"
@@ -367,16 +385,16 @@ export default function ListingPage() {
                       firstName: e.target.value,
                     })
                   }
-                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label
                   htmlFor="lastName"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[#243352] font-medium"
                 >
-                  Last Name
+                  Фамилия
                 </Label>
                 <Input
                   id="lastName"
@@ -387,7 +405,7 @@ export default function ListingPage() {
                       lastName: e.target.value,
                     })
                   }
-                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
                 />
               </div>
             </div>
@@ -395,7 +413,7 @@ export default function ListingPage() {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
                 Email
               </Label>
@@ -410,7 +428,7 @@ export default function ListingPage() {
                   })
                 }
                 disabled={!!editingDoctor}
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-70 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] disabled:opacity-70 disabled:bg-[#F8FAFC]"
               />
             </div>
 
@@ -418,9 +436,9 @@ export default function ListingPage() {
               <div className="space-y-2">
                 <Label
                   htmlFor="password"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[#243352] font-medium"
                 >
-                  Password
+                  Пароль
                 </Label>
                 <Input
                   id="password"
@@ -432,7 +450,7 @@ export default function ListingPage() {
                       password: e.target.value,
                     })
                   }
-                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
                 />
               </div>
             )}
@@ -440,9 +458,9 @@ export default function ListingPage() {
             <div className="space-y-2">
               <Label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Phone
+                Телефон
               </Label>
               <Input
                 id="phone"
@@ -453,16 +471,16 @@ export default function ListingPage() {
                     phone: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="specialization"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Specialization
+                Специализация
               </Label>
               <Input
                 id="specialization"
@@ -473,16 +491,16 @@ export default function ListingPage() {
                     specialization: e.target.value,
                   })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
               <Label
                 htmlFor="education"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-[#243352] font-medium"
               >
-                Education & Qualifications
+                Образование и квалификация
               </Label>
               <Textarea
                 id="education"
@@ -494,7 +512,7 @@ export default function ListingPage() {
                   })
                 }
                 rows={3}
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] resize-none"
               />
             </div>
           </div>
@@ -503,16 +521,16 @@ export default function ListingPage() {
             <Button
               variant="outline"
               onClick={() => setShowDoctorDialog(false)}
-              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               onClick={handleSubmitDoctorForm}
               disabled={createDoctor.isLoading || updateDoctor.isLoading}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
+              className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {editingDoctor ? "Update Doctor" : "Add Doctor"}
+              {editingDoctor ? "Обновить данные" : "Добавить врача"}
             </Button>
           </DialogFooter>
         </DialogContent>

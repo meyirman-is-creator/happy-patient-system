@@ -12,7 +12,14 @@ import {
   isEqual,
   addMinutes,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { ru } from "date-fns/locale";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Calendar as CalendarIcon,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -113,8 +120,8 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
     if (isBefore(slotDate, new Date())) {
       toast({
-        title: "Cannot book past time slots",
-        description: "Please select a future time slot.",
+        title: "Нельзя выбрать прошедшую дату",
+        description: "Пожалуйста, выберите будущую дату.",
         variant: "destructive",
       });
       return;
@@ -135,8 +142,8 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     try {
       if (!formData.startTime || !formData.duration) {
         toast({
-          title: "Missing information",
-          description: "Please fill in all required fields.",
+          title: "Отсутствует информация",
+          description: "Пожалуйста, заполните все необходимые поля.",
           variant: "destructive",
         });
         return;
@@ -151,16 +158,15 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       });
 
       toast({
-        title: "Appointment booked",
-        description: "Your appointment has been successfully booked.",
+        title: "Запись создана",
+        description: "Ваша запись успешно создана.",
       });
 
       setShowBookingDialog(false);
     } catch (error: any) {
       toast({
-        title: "Failed to book appointment",
-        description:
-          error.message || "An error occurred while booking your appointment.",
+        title: "Ошибка создания записи",
+        description: error.message || "Произошла ошибка при создании записи.",
         variant: "destructive",
       });
     }
@@ -173,17 +179,15 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       await deleteAppointment.mutateAsync(selectedSlot.id);
 
       toast({
-        title: "Appointment cancelled",
-        description: "Your appointment has been successfully cancelled.",
+        title: "Запись отменена",
+        description: "Ваша запись успешно отменена.",
       });
 
       setShowDetailsDialog(false);
     } catch (error: any) {
       toast({
-        title: "Failed to cancel appointment",
-        description:
-          error.message ||
-          "An error occurred while cancelling your appointment.",
+        title: "Ошибка отмены записи",
+        description: error.message || "Произошла ошибка при отмене записи.",
         variant: "destructive",
       });
     }
@@ -211,63 +215,64 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     slotDate.setHours(time.getHours(), time.getMinutes(), 0, 0);
 
     if (isBefore(slotDate, now)) {
-      return "h-16 px-2 py-1 border rounded-md cursor-not-allowed bg-gray-100 dark:bg-gray-800 opacity-40";
+      return "h-16 px-2 py-1 border rounded-md cursor-not-allowed bg-[#F8FAFC] opacity-40";
     }
 
     const appointment = getSlotAppointment(day, time);
 
     if (!appointment) {
-      return "h-16 px-2 py-1 border-2 border-dashed border-blue-200 dark:border-blue-900/30 rounded-md cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
+      return "h-16 px-2 py-1 border-2 border-dashed border-[#0A6EFF]/20 rounded-md cursor-pointer hover:bg-[#0A6EFF]/5 transition-colors";
     }
 
     if (appointment.status === AppointmentStatus.OCCUPIED) {
-      return "h-16 px-2 py-1 border-2 border-green-500 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-md cursor-pointer transition-colors";
+      return "h-16 px-2 py-1 border-2 border-green-500 bg-green-50 rounded-md cursor-pointer transition-colors";
     }
 
     if (appointment.status === AppointmentStatus.BOOKED) {
       if (user?.role === "PATIENT" && appointment.patientId) {
-        return "h-16 px-2 py-1 border-2 border-blue-600 dark:border-blue-500 bg-blue-100 dark:bg-blue-900/40 rounded-md cursor-pointer hover:shadow-md transition-all";
+        return "h-16 px-2 py-1 border-2 border-[#0A6EFF] bg-[#0A6EFF]/10 rounded-md cursor-pointer hover:shadow-md transition-all";
       }
-      return "h-16 px-2 py-1 border-2 border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 rounded-md cursor-pointer hover:shadow-md transition-all";
+      return "h-16 px-2 py-1 border-2 border-[#0A6EFF]/70 bg-[#0A6EFF]/5 rounded-md cursor-pointer hover:shadow-md transition-all";
     }
 
-    return "h-16 px-2 py-1 border-2 border-dashed border-blue-200 dark:border-blue-900/30 rounded-md cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
+    return "h-16 px-2 py-1 border-2 border-dashed border-[#0A6EFF]/20 rounded-md cursor-pointer hover:bg-[#0A6EFF]/5 transition-colors";
   };
 
   const formatSlotTime = (time: Date) => {
-    return format(time, "h:mm a");
+    return format(time, "HH:mm");
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-blue-700 dark:text-blue-300">
-        <div className="animate-pulse">Loading calendar...</div>
+      <div className="flex justify-center items-center h-64 text-[#0A6EFF]">
+        <div className="animate-pulse">Загрузка календаря...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border-2 border-blue-100 dark:border-blue-900/30">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-300">
-          {format(startDate, "MMMM d, yyyy")} -{" "}
-          {format(addDays(startDate, 6), "MMMM d, yyyy")}
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-[#0A6EFF]/10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h2 className="text-xl font-bold text-[#243352] flex items-center">
+          <CalendarIcon className="h-5 w-5 mr-2 text-[#0A6EFF]" />
+          {format(startDate, "d MMMM", { locale: ru })} -{" "}
+          {format(addDays(startDate, 6), "d MMMM yyyy", { locale: ru })}
         </h2>
         <div className="flex space-x-3">
           <Button
             size="sm"
             onClick={handlePreviousWeek}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+            className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Previous Week</span>
+            <span className="ml-1">Назад</span>
           </Button>
           <Button
             size="sm"
             onClick={handleNextWeek}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+            className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
           >
-            <span className="sr-only">Next Week</span>
+            <span className="mr-1">Вперед</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -280,7 +285,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
             {timeSlots.map((time, i) => (
               <div
                 key={i}
-                className="h-16 flex items-center justify-end pr-2 text-sm text-blue-600 dark:text-blue-400 font-medium"
+                className="h-16 flex items-center justify-end pr-2 text-sm text-[#0A6EFF] font-medium"
               >
                 <Clock className="h-3 w-3 mr-1" />
                 {formatSlotTime(time)}
@@ -290,12 +295,12 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
           {days.map((day, dayIndex) => (
             <div key={dayIndex} className="calendar-day">
-              <div className="h-10 flex flex-col items-center justify-center font-medium">
-                <div className="text-sm text-blue-800 dark:text-blue-300">
-                  {format(day, "EEE")}
+              <div className="h-10 flex flex-col items-center justify-center font-medium bg-[#0A6EFF]/5 rounded-t-lg">
+                <div className="text-sm text-[#243352]">
+                  {format(day, "EEEEEE", { locale: ru })}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
-                  {format(day, "MMM d")}
+                <div className="text-xs text-[#243352]/70">
+                  {format(day, "d MMM", { locale: ru })}
                 </div>
               </div>
 
@@ -308,9 +313,17 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                     onClick={() => handleSlotClick(day, time, appointment)}
                   >
                     {appointment && (
-                      <div className="text-xs truncate font-medium text-blue-700 dark:text-blue-300">
-                        {appointment.title || "Appointment"}
-                      </div>
+                      <>
+                        <div className="text-xs truncate font-medium text-[#243352]">
+                          {appointment.title || "Прием"}
+                        </div>
+                        {appointment.patientId && user?.role !== "PATIENT" && (
+                          <div className="text-xs truncate text-[#243352]/70 flex items-center mt-1">
+                            <Users className="h-3 w-3 mr-1 text-[#0A6EFF]" />
+                            {appointment.patient?.user.lastName}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 );
@@ -321,62 +334,55 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       </div>
 
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
+        <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-              Book an Appointment
+            <DialogTitle className="text-2xl font-bold text-[#243352]">
+              Запись на прием
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              Fill in the details below to book your appointment.
+            <DialogDescription className="text-[#243352]/70">
+              Заполните данные для записи на прием.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label
-                  htmlFor="date"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Date
+                <Label htmlFor="date" className="text-[#243352] font-medium">
+                  Дата
                 </Label>
                 <Input
                   id="date"
                   value={
                     formData.startTime
-                      ? format(formData.startTime, "MMMM d, yyyy")
+                      ? format(formData.startTime, "d MMMM yyyy", {
+                          locale: ru,
+                        })
                       : ""
                   }
                   disabled
-                  className="bg-gray-100 dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700"
+                  className="bg-[#F8FAFC] border-2 border-[#0A6EFF]/10"
                 />
               </div>
               <div className="space-y-2">
-                <Label
-                  htmlFor="time"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Time
+                <Label htmlFor="time" className="text-[#243352] font-medium">
+                  Время
                 </Label>
                 <Input
                   id="time"
                   value={
                     formData.startTime
-                      ? format(formData.startTime, "h:mm a")
+                      ? format(formData.startTime, "HH:mm")
                       : ""
                   }
                   disabled
-                  className="bg-gray-100 dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700"
+                  className="bg-[#F8FAFC] border-2 border-[#0A6EFF]/10"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="duration"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Duration
+              <Label htmlFor="duration" className="text-[#243352] font-medium">
+                Продолжительность
               </Label>
               <Select
                 value={formData.duration?.toString()}
@@ -384,72 +390,54 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                   setFormData({ ...formData, duration: parseInt(value) })
                 }
               >
-                <SelectTrigger className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                  <SelectValue placeholder="Select duration" />
+                <SelectTrigger className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]">
+                  <SelectValue placeholder="Выберите продолжительность" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-900">
-                  <SelectItem
-                    value="30"
-                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  >
-                    30 minutes
+                <SelectContent className="bg-white border border-[#0A6EFF]/10">
+                  <SelectItem value="30" className="hover:bg-[#0A6EFF]/5">
+                    30 минут
                   </SelectItem>
-                  <SelectItem
-                    value="60"
-                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  >
-                    1 hour
+                  <SelectItem value="60" className="hover:bg-[#0A6EFF]/5">
+                    1 час
                   </SelectItem>
-                  <SelectItem
-                    value="90"
-                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  >
-                    1 hour 30 minutes
+                  <SelectItem value="90" className="hover:bg-[#0A6EFF]/5">
+                    1 час 30 минут
                   </SelectItem>
-                  <SelectItem
-                    value="120"
-                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  >
-                    2 hours
+                  <SelectItem value="120" className="hover:bg-[#0A6EFF]/5">
+                    2 часа
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="title"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Appointment Title
+              <Label htmlFor="title" className="text-[#243352] font-medium">
+                Название приема
               </Label>
               <Input
                 id="title"
-                placeholder="e.g., Regular checkup"
+                placeholder="Например: Плановый осмотр"
                 value={formData.title || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="symptoms"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Symptoms / Reason for Visit
+              <Label htmlFor="symptoms" className="text-[#243352] font-medium">
+                Симптомы / Причина посещения
               </Label>
               <Textarea
                 id="symptoms"
-                placeholder="Please describe your symptoms or reason for the visit..."
+                placeholder="Опишите симптомы или причину визита..."
                 rows={3}
                 value={formData.symptoms || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, symptoms: e.target.value })
                 }
-                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] resize-none"
               />
             </div>
           </div>
@@ -458,16 +446,16 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
             <Button
               variant="outline"
               onClick={() => setShowBookingDialog(false)}
-              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               onClick={handleSubmitBooking}
               disabled={createAppointment.isLoading}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
+              className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {createAppointment.isLoading ? "Booking..." : "Book Appointment"}
+              {createAppointment.isLoading ? "Создание..." : "Записаться"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -475,60 +463,62 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
       {selectedSlot && (
         <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
+          <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-                Appointment Details
+              <DialogTitle className="text-2xl font-bold text-[#243352]">
+                Детали записи
               </DialogTitle>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Date
+                  <h3 className="text-sm font-medium text-[#243352]/70">
+                    Дата
                   </h3>
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">
-                    {format(new Date(selectedSlot.startTime), "MMMM d, yyyy")}
+                  <p className="text-[#243352] font-medium">
+                    {format(new Date(selectedSlot.startTime), "d MMMM yyyy", {
+                      locale: ru,
+                    })}
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Time
+                  <h3 className="text-sm font-medium text-[#243352]/70">
+                    Время
                   </h3>
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">
-                    {format(new Date(selectedSlot.startTime), "h:mm a")} -{" "}
-                    {format(new Date(selectedSlot.endTime), "h:mm a")}
+                  <p className="text-[#243352] font-medium">
+                    {format(new Date(selectedSlot.startTime), "HH:mm")} -{" "}
+                    {format(new Date(selectedSlot.endTime), "HH:mm")}
                   </p>
                 </div>
               </div>
 
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Title
+              <div className="p-3 bg-[#0A6EFF]/5 rounded-lg">
+                <h3 className="text-sm font-medium text-[#243352]/70 mb-1">
+                  Название
                 </h3>
-                <p className="text-blue-800 dark:text-blue-300">
-                  {selectedSlot.title || "Not specified"}
+                <p className="text-[#243352]">
+                  {selectedSlot.title || "Не указано"}
                 </p>
               </div>
 
               {selectedSlot.symptoms && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Symptoms / Reason
+                <div className="p-3 bg-[#0A6EFF]/5 rounded-lg">
+                  <h3 className="text-sm font-medium text-[#243352]/70 mb-1">
+                    Симптомы / Причина
                   </h3>
-                  <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                  <p className="whitespace-pre-wrap text-[#243352]">
                     {selectedSlot.symptoms}
                   </p>
                 </div>
               )}
 
               {selectedSlot.medicalRecord?.doctorNotes && (
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Doctor Notes
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="text-sm font-medium text-[#243352]/70 mb-1">
+                    Записи врача
                   </h3>
-                  <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                  <p className="whitespace-pre-wrap text-[#243352]">
                     {selectedSlot.medicalRecord.doctorNotes}
                   </p>
                 </div>
@@ -545,16 +535,16 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                     className="bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-70"
                   >
                     {deleteAppointment.isLoading
-                      ? "Cancelling..."
-                      : "Cancel Appointment"}
+                      ? "Отмена..."
+                      : "Отменить запись"}
                   </Button>
                 )}
               <Button
                 variant="outline"
                 onClick={() => setShowDetailsDialog(false)}
-                className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+                className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
               >
-                Close
+                Закрыть
               </Button>
             </DialogFooter>
           </DialogContent>
