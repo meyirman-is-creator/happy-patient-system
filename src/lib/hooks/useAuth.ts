@@ -23,26 +23,29 @@ export const useAuth = () => {
 
   // Check if token exists in localStorage on mount
   useEffect(() => {
-    const storedToken =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const checkToken = async () => {
+      const storedToken =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    // If we have a token in Redux but it doesn't match localStorage, update Redux
-    if (token !== storedToken) {
-      if (storedToken) {
-        // We have a token in localStorage but not in Redux, set authenticated state
+      // If we have a token in localStorage but not in Redux, update Redux
+      if (storedToken && !token) {
         dispatch(
           loginSuccess({
             user: null, // We'll get the user info from the API
             token: storedToken,
           })
         );
-      } else if (token) {
-        // We have a token in Redux but not in localStorage, likely an error
-        dispatch(logoutAction());
+      } else if (!storedToken && token) {
+        // We have a token in Redux but not in localStorage, update localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", token);
+        }
       }
-    }
 
-    setTokenChecked(true);
+      setTokenChecked(true);
+    };
+
+    checkToken();
   }, [dispatch, token]);
 
   // Get current user
@@ -62,7 +65,9 @@ export const useAuth = () => {
       console.error("Error fetching user data:", error);
       // Clear token and state on auth error
       dispatch(logoutAction());
-      // Don't redirect here, let the layout handle it
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
     },
   });
 
@@ -84,6 +89,7 @@ export const useAuth = () => {
       // Ensure token is stored in localStorage
       if (typeof window !== "undefined" && data.token) {
         localStorage.setItem("token", data.token);
+        console.log("Token stored in localStorage:", data.token);
       }
 
       dispatch(loginSuccess({ user: data.user, token: data.token }));

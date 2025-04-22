@@ -7,6 +7,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   // Only access localStorage in browser environment
   if (typeof window !== "undefined") {
     token = localStorage.getItem("token");
+    console.log("Using token from localStorage:", token ? "exists" : "missing");
   }
 
   // Create headers with correct Authorization format
@@ -76,7 +77,7 @@ export const auth = {
     }),
 };
 
-// Rest of the code remains the same...
+// Rest of the API functions remain the same...
 export const appointments = {
   getAll: (params?: any) => {
     const queryParams = params

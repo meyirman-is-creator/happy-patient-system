@@ -48,14 +48,22 @@ export async function POST(request: Request) {
     }
 
     // Ensure we use a consistent secret for signing
-    const JWT_SECRET = process.env.JWT_SECRET || "secret";
+    const JWT_SECRET = process.env.JWT_SECRET || "qwerty";
+    
+    // Generate JWT token - include only necessary fields
+    const payload = { 
+      id: user.id, 
+      email: user.email, 
+      role: user.role 
+    };
+    
+    console.log("Creating token with payload:", payload);
+    console.log("Using secret:", JWT_SECRET.substring(0, 3) + "..." + JWT_SECRET.substring(JWT_SECRET.length - 3));
+    
+    const token = sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    // Generate JWT token
-    const token = sign(
-      { id: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Log created token (first few characters only for security)
+    console.log("Token created:", token.substring(0, 10) + "...");
 
     // Remove password from response
     const { password, ...userWithoutPassword } = user;

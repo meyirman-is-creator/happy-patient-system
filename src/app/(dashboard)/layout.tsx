@@ -14,16 +14,27 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Prevent redirect loops
-    if (!loading && !isAuthenticated && !isRedirecting) {
+    // Wait a short time to ensure auth state is loaded properly
+    const timer = setTimeout(() => {
+      setInitialized(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Only redirect after the component has mounted and auth has been checked
+    if (initialized && !loading && !isAuthenticated && !isRedirecting) {
+      console.log("Not authenticated, redirecting to login");
       setIsRedirecting(true);
       router.push("/login");
     }
-  }, [isAuthenticated, loading, router, isRedirecting]);
+  }, [isAuthenticated, loading, router, isRedirecting, initialized]);
 
-  if (loading) {
+  if (loading || !initialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading...</p>

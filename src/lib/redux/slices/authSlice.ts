@@ -9,7 +9,7 @@ interface AuthState {
   error: string | null;
 }
 
-// Initialize with null, then check localStorage in a safer way
+// Initialize state
 const initialState: AuthState = {
   user: null,
   token: null,
@@ -21,8 +21,12 @@ const initialState: AuthState = {
 // Try to get token from localStorage if in browser environment
 if (typeof window !== "undefined") {
   try {
-    initialState.token = localStorage.getItem("token");
-    initialState.isAuthenticated = !!initialState.token;
+    const token = localStorage.getItem("token");
+    if (token) {
+      initialState.token = token;
+      initialState.isAuthenticated = true;
+      console.log("Initialized auth with token from localStorage");
+    }
   } catch (error) {
     console.error("Error accessing localStorage:", error);
   }
@@ -38,7 +42,7 @@ const authSlice = createSlice({
     },
     loginSuccess: (
       state,
-      action: PayloadAction<{ user: User; token: string }>
+      action: PayloadAction<{ user: User | null; token: string }>
     ) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -46,13 +50,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
 
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("token", action.payload.token);
-        } catch (error) {
-          console.error("Error saving token to localStorage:", error);
-        }
-      }
+      // Token is saved to localStorage in the login function
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
@@ -62,14 +60,9 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.loading = false;
 
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.removeItem("token");
-        } catch (error) {
-          console.error("Error removing token from localStorage:", error);
-        }
-      }
+      // Token is removed from localStorage in the logout function
     },
     updateUserSuccess: (state, action: PayloadAction<User>) => {
       state.user = action.payload;

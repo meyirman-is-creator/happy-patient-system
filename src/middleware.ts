@@ -23,6 +23,7 @@ export function middleware(request: NextRequest) {
     // Get the authorization header
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log(`Unauthorized API request to ${pathname}: No auth header`);
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -30,16 +31,17 @@ export function middleware(request: NextRequest) {
     const token = authHeader.split(" ")[1];
 
     try {
-      // Verify token using the exact same secret that was used to sign it
-      verify(token, process.env.JWT_SECRET || "secret");
+      // Use exactly the same secret for JWT verification
+      const JWT_SECRET = process.env.JWT_SECRET || "qwerty";
+      verify(token, JWT_SECRET);
       return NextResponse.next();
     } catch (error) {
-      console.error("Token verification error:", error);
+      console.error(`Token verification error for ${pathname}:`, error);
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
   }
 
-  // For client-side routes, check cookie/localStorage in the component
+  // For client-side routes, check localStorage in the component
   return NextResponse.next();
 }
 

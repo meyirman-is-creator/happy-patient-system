@@ -14,7 +14,7 @@ const getUserFromToken = async (request: Request) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
+    const decoded = verify(token, process.env.JWT_SECRET || "qwerty") as {
       id: string;
     };
 
