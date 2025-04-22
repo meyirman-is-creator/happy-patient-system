@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Happy Patient System
 
-## Getting Started
+Система управления медицинским центром с функциями записи на прием, управления расписанием и ведения медицинских карт пациентов.
 
-First, run the development server:
+## Технологический стек
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Frontend**: Next.js, TypeScript, React Query, Redux Toolkit, shadcn/ui, Tailwind CSS
+- **Backend**: Next.js API Routes (SSR)
+- **Database**: PostgreSQL с Prisma ORM
+- **Authentication**: JWT
+
+## Возможности
+
+- Регистрация и вход для трех ролей: Пациент, Врач, Администратор
+- Функции для пациентов:
+  - Просмотр списка врачей
+  - Просмотр расписания врача
+  - Запись и отмена записи на прием
+  - Просмотр своей медкарты
+- Функции для врачей:
+  - Просмотр расписания
+  - Просмотр списка пациентов
+  - Отметка о посещении
+  - Добавление записей в медкарту пациента
+- Функции для администраторов:
+  - Управление врачами (добавление, редактирование, удаление)
+  - Управление расписанием
+  - Просмотр статистики
+
+## Установка и запуск
+
+### Предварительные требования
+
+- Node.js 18+ и npm/yarn/bun
+- PostgreSQL
+
+### Шаги установки
+
+1. Клонировать репозиторий
+   ```
+   git clone https://github.com/yourusername/happy-patient-system.git
+   cd happy-patient-system
+   ```
+
+2. Установить зависимости
+   ```
+   bun install
+   ```
+
+3. Настроить переменные окружения
+   ```
+   cp .env.example .env
+   ```
+   Отредактировать `.env` файл для подключения к вашей базе данных
+
+4. Настроить базу данных
+   ```
+   bun prisma:migrate
+   ```
+
+5. Заполнить базу данных тестовыми данными
+   ```
+   bun seed
+   ```
+
+6. Запустить приложение
+   ```
+   bun dev
+   ```
+
+7. Открыть приложение в браузере
+   ```
+   http://localhost:3000
+   ```
+
+## Тестовые учетные записи
+
+После запуска команды `bun seed` будут созданы следующие тестовые учетные записи:
+
+- **Администратор**:
+  - Email: admin@happypatient.com
+  - Password: admin123
+
+- **Врач**:
+  - Email: doctor1@happypatient.com
+  - Password: doctor123
+
+- **Пациент**:
+  - Email: patient1@example.com
+  - Password: patient123
+
+## API Документация
+
+API документация доступна по адресу:
+```
+http://localhost:3000/api-docs
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Структура проекта
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+happy-patient-system/
+├── app/
+│   ├── (auth)/                 # Страницы авторизации
+│   ├── (dashboard)/            # Защищенные страницы
+│   ├── api/                    # API маршруты
+│   └── layout.tsx
+├── components/                 # React компоненты
+│   ├── ui/                     # UI компоненты
+│   └── ...
+├── lib/                        # Утилиты и хуки
+│   ├── hooks/                  # React Query хуки
+│   ├── redux/                  # Redux состояние
+│   └── ...
+├── prisma/                     # Prisma схема и миграции
+│   ├── schema.prisma
+│   └── ...
+└── public/                     # Статические файлы
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Лицензия
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
