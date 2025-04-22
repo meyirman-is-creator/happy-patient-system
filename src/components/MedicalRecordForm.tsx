@@ -1,7 +1,8 @@
+// src/components/MedicalRecordForm.tsx
 "use client";
 
 import { useState } from "react";
-import { Appointment, MedicalRecord } from "@/lib/types";
+import { Appointment } from "@/lib/types";
 import { format } from "date-fns";
 
 import {

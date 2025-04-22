@@ -1,3 +1,4 @@
+// src/lib/hooks/useAuth.ts (update exports)
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +8,7 @@ import {
   loginStart,
   loginSuccess,
   loginFailure,
-  logout,
+  logout as logoutAction,
   updateUserSuccess,
 } from "../redux/slices/authSlice";
 
@@ -31,7 +32,7 @@ export const useAuth = () => {
       }
     },
     onError: () => {
-      dispatch(logout());
+      dispatch(logoutAction());
       router.push("/login");
     },
   });
@@ -82,7 +83,7 @@ export const useAuth = () => {
 
   // Logout function
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutAction());
     queryClient.clear();
     router.push("/login");
   };
