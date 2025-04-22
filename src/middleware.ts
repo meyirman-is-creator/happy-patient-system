@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verify } from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
-// Define paths that do not require authentication
+// Пути, которые не требуют аутентификации
 const publicPaths = [
   "/login",
   "/register",
@@ -10,47 +10,43 @@ const publicPaths = [
   "/api/auth/register",
 ];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the path is public
+  // Проверяем, является ли путь публичным
   if (publicPaths.some((path) => pathname.includes(path))) {
     return NextResponse.next();
   }
 
-  // Check if it's an API route
+  // Проверяем, является ли это API-маршрутом
   if (pathname.startsWith("/api")) {
-    // Get the authorization header
+    // Получаем заголовок авторизации
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log(`Unauthorized API request to ${pathname}: No auth header`);
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Extract token
+    // Извлекаем токен
     const token = authHeader.split(" ")[1];
 
     try {
-      // Use exactly the same secret for JWT verification
+      // Используем jose вместо jsonwebtoken
       const JWT_SECRET = process.env.JWT_SECRET || "qwerty";
-      verify(token, JWT_SECRET);
+      const secretKey = new TextEncoder().encode(JWT_SECRET);
+
+      await jwtVerify(token, secretKey);
       return NextResponse.next();
     } catch (error) {
-      console.error(`Token verification error for ${pathname}:`, error);
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
   }
 
-  // For client-side routes, check localStorage in the component
   return NextResponse.next();
 }
 
-// Configure the middleware to run only for specific paths
 export const config = {
   matcher: [
-    // Match all API routes
     "/api/:path*",
-    // Match all protected pages
     "/((?!login|register|_next/static|_next/image|favicon.ico).*)",
   ],
 };
