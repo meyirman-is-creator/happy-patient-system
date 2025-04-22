@@ -1,27 +1,8 @@
 import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
-
-// Helper to get user ID from token
-const getUserIdFromToken = (request: Request): string | null => {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
-      id: string;
-    };
-    return decoded.id;
-  } catch (error) {
-    return null;
-  }
-};
+import { verifyToken } from "@/lib/jwt";
 
 // Password update schema
 const updatePasswordSchema = z.object({
@@ -32,7 +13,13 @@ const updatePasswordSchema = z.object({
 // PUT update password
 export async function PUT(request: Request) {
   try {
-    const userId = getUserIdFromToken(request);
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const userId = await verifyToken(token);
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

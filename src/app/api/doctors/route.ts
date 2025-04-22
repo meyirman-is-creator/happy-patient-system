@@ -1,32 +1,8 @@
 import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
-
-// Helper to get user from token
-const getUserFromToken = async (request: Request) => {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
-      id: string;
-    };
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-    });
-
-    return user;
-  } catch (error) {
-    return null;
-  }
-};
+import { getUserFromToken } from "@/lib/jwt";
 
 // GET all doctors
 export async function GET(request: Request) {
@@ -85,6 +61,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // ... остальной код остается без изменений
     const body = await request.json();
 
     // Validate input

@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   // Проверяем, является ли это API-маршрутом
   if (pathname.startsWith("/api")) {
     // Получаем заголовок авторизации
-    const authHeader = request.headers.get("authorization");
+    const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

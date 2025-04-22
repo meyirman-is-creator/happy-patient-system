@@ -1,30 +1,6 @@
 import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-
-// Helper to get user from token
-const getUserFromToken = async (request: Request) => {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
-      id: string;
-    };
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-    });
-
-    return user;
-  } catch (error) {
-    return null;
-  }
-};
+import { getUserFromToken } from "@/lib/jwt";
 
 // GET all patients (for doctors and admins)
 export async function GET(request: Request) {
@@ -43,6 +19,7 @@ export async function GET(request: Request) {
       );
     }
 
+    // ... остальной код остается без изменений
     // For doctors, get only patients who have appointments with them
     if (user.role === "DOCTOR") {
       const doctorProfile = await prisma.doctor.findUnique({
@@ -83,7 +60,7 @@ export async function GET(request: Request) {
             orderBy: {
               startTime: "desc",
             },
-            take: 1, // Just to check if there's a recent appointment
+            take: 1, // Просто для проверки есть ли недавняя запись
           },
         },
       });

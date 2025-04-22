@@ -69,7 +69,7 @@ export default function CalendarPage() {
                 <SelectValue placeholder="Select a doctor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Doctors</SelectItem>
+              <SelectItem value="select-doctor">Выберите доктора</SelectItem>
                 {doctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
                     Dr. {doctor.user.firstName} {doctor.user.lastName}

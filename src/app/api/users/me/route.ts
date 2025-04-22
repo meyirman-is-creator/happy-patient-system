@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { verifyToken } from "@/lib/jwt";
 
 // Define update profile schema
 const updateProfileSchema = z.object({
@@ -11,7 +11,7 @@ const updateProfileSchema = z.object({
 });
 
 // Helper to get user ID from token
-const getUserIdFromToken = (request: Request): string | null => {
+const getUserIdFromToken = async (request: Request): Promise<string | null> => {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -22,21 +22,13 @@ const getUserIdFromToken = (request: Request): string | null => {
     const token = authHeader.split(" ")[1];
     console.log("Token from header:", token.substring(0, 10) + "...");
 
-    // Ensure we use exactly the same secret for verification
-    const JWT_SECRET = process.env.JWT_SECRET || "qwerty";
-    console.log("Using secret:", JWT_SECRET.substring(0, 3) + "..." + JWT_SECRET.substring(JWT_SECRET.length - 3));
+    const userId = await verifyToken(token);
 
-    try {
-      const decoded = verify(token, JWT_SECRET) as { id: string };
-      console.log("Successfully decoded token. User ID:", decoded.id);
-      return decoded.id;
-    } catch (error) {
-      console.error("Token verification error:", error);
-      // Log more details about the error
-      if (error instanceof Error) {
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-      }
+    if (userId) {
+      console.log("Successfully decoded token. User ID:", userId);
+      return userId;
+    } else {
+      console.error("Token verification failed");
       return null;
     }
   } catch (error) {
@@ -49,8 +41,8 @@ const getUserIdFromToken = (request: Request): string | null => {
 export async function GET(request: Request) {
   try {
     console.log("GET /api/users/me - Request received");
-    
-    const userId = getUserIdFromToken(request);
+
+    const userId = await getUserIdFromToken(request);
 
     if (!userId) {
       console.log("Unauthorized - No valid user ID from token");
@@ -89,7 +81,7 @@ export async function GET(request: Request) {
 // PUT update current user
 export async function PUT(request: Request) {
   try {
-    const userId = getUserIdFromToken(request);
+    const userId = await getUserIdFromToken(request);
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
