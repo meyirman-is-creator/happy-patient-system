@@ -1,4 +1,3 @@
-// src/components/MedicalRecordForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -75,38 +74,43 @@ export function MedicalRecordForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
             {appointment.medicalRecord
               ? "Edit Medical Record"
               : "Add Medical Record"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600 dark:text-gray-400">
             {appointment.patient?.user && (
-              <span>
+              <span className="block text-blue-700 dark:text-blue-300 font-medium text-lg">
                 Patient: {appointment.patient.user.firstName}{" "}
                 {appointment.patient.user.lastName}
               </span>
             )}
-            <span className="block">
-              Date: {format(new Date(appointment.startTime), "MMMM d, yyyy")}
-            </span>
-            <span className="block">
-              Time: {format(new Date(appointment.startTime), "h:mm a")} -{" "}
-              {format(new Date(appointment.endTime), "h:mm a")}
-            </span>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
+              <span className="text-sm bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
+                Date: {format(new Date(appointment.startTime), "MMMM d, yyyy")}
+              </span>
+              <span className="text-sm bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full inline-block">
+                Time: {format(new Date(appointment.startTime), "h:mm a")} -{" "}
+                {format(new Date(appointment.endTime), "h:mm a")}
+              </span>
+            </div>
           </DialogDescription>
         </DialogHeader>
 
         {appointment.symptoms && (
           <div className="mb-4">
-            <Label htmlFor="symptoms">
+            <Label
+              htmlFor="symptoms"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"
+            >
               Patient Symptoms / Reason for Visit
             </Label>
             <div
               id="symptoms"
-              className="mt-1 p-3 border rounded-md bg-muted/50 text-sm"
+              className="mt-1 p-4 border-2 border-blue-100 dark:border-blue-900/30 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-gray-700 dark:text-gray-300"
             >
               {appointment.symptoms}
             </div>
@@ -114,7 +118,10 @@ export function MedicalRecordForm({
         )}
 
         <div className="mb-4">
-          <Label htmlFor="doctorNotes" className="mb-1 block">
+          <Label
+            htmlFor="doctorNotes"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"
+          >
             Doctor Notes (analysis, complaints, conclusions)
           </Label>
           <Textarea
@@ -123,17 +130,22 @@ export function MedicalRecordForm({
             onChange={(e) => setDoctorNotes(e.target.value)}
             rows={8}
             placeholder="Enter your medical notes, including analysis, patient complaints, and conclusions..."
-            className="resize-none"
+            className="resize-none border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="gap-3 mt-2">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={completeAppointment.isLoading}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
           >
             {completeAppointment.isLoading
               ? "Saving..."

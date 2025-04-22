@@ -40,36 +40,43 @@ function PatientAppointmentItem({
     : false;
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="pb-2">
+    <Card className="mb-4 bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 shadow-md hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-2 border-b border-blue-100 dark:border-gray-700">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>{initials}</AvatarFallback>
+            <Avatar className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500/20 dark:ring-blue-400/20">
+              <AvatarFallback className="text-blue-700 dark:text-blue-300 font-medium">
+                {initials}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-base">
+              <CardTitle className="text-lg text-blue-800 dark:text-blue-300">
                 {patient.user.firstName} {patient.user.lastName}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {patient.user.email}
               </p>
             </div>
           </div>
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 transition-colors"
+          >
             <Link href={`/calendar?patientId=${patient.id}`}>
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
               History
             </Link>
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {appointment ? (
           <div>
-            <div className="flex items-center mb-2">
-              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="text-sm">
+            <div className="flex items-center mb-3">
+              <Clock className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 {format(
                   new Date(appointment.startTime),
                   "MMM d, yyyy • h:mm a"
@@ -77,13 +84,13 @@ function PatientAppointmentItem({
                 -{format(new Date(appointment.endTime), " h:mm a")}
               </span>
               {appointment.status === AppointmentStatus.OCCUPIED && (
-                <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                <span className="ml-2 inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Completed
                 </span>
               )}
               {isPast && appointment.status === AppointmentStatus.BOOKED && (
-                <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                <span className="ml-2 inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-300">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Missed
                 </span>
@@ -91,23 +98,28 @@ function PatientAppointmentItem({
             </div>
 
             {appointment.title && (
-              <p className="text-sm font-medium mb-1">{appointment.title}</p>
+              <p className="text-sm font-medium mb-2 text-blue-700 dark:text-blue-300">
+                {appointment.title}
+              </p>
             )}
 
             {appointment.symptoms && (
-              <div className="mb-2">
-                <p className="text-xs font-medium text-muted-foreground">
+              <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Symptoms:
                 </p>
-                <p className="text-sm">{appointment.symptoms}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {appointment.symptoms}
+                </p>
               </div>
             )}
 
             {appointment.status === AppointmentStatus.BOOKED && !isPast && (
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-4">
                 <Button
                   size="sm"
                   onClick={() => onMarkAttended?.(appointment.id)}
+                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
                 >
                   Mark as Attended
                 </Button>
@@ -115,6 +127,7 @@ function PatientAppointmentItem({
                   variant="outline"
                   size="sm"
                   onClick={() => onMarkMissed?.(appointment.id)}
+                  className="border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 transition-colors"
                 >
                   No-show
                 </Button>
@@ -122,11 +135,16 @@ function PatientAppointmentItem({
             )}
 
             {appointment.status === AppointmentStatus.OCCUPIED && (
-              <div className="mt-3">
+              <div className="mt-4">
                 <Button
                   size="sm"
                   variant={appointment.medicalRecord ? "outline" : "default"}
                   onClick={() => onAddNotes?.(appointment.id, patient.id)}
+                  className={
+                    appointment.medicalRecord
+                      ? "border-2 border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 transition-colors"
+                      : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+                  }
                 >
                   {appointment.medicalRecord
                     ? "Edit Medical Record"
@@ -136,7 +154,7 @@ function PatientAppointmentItem({
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             No appointments scheduled
           </p>
         )}
@@ -163,10 +181,13 @@ export function PatientList({
   const { data: patients = [], isLoading: patientsLoading } = usePatients();
 
   if (isLoading || patientsLoading) {
-    return <div>Loading patients...</div>;
+    return (
+      <div className="flex justify-center items-center h-64 text-blue-700 dark:text-blue-300">
+        <div className="animate-pulse">Loading patients...</div>
+      </div>
+    );
   }
 
-  // Filter appointments by status
   const upcomingAppointments = appointments
     .filter(
       (app) =>
@@ -193,20 +214,28 @@ export function PatientList({
   return (
     <div>
       <Tabs defaultValue="upcoming">
-        <TabsList className="mb-4">
-          <TabsTrigger value="upcoming">
+        <TabsList className="mb-6 bg-blue-100 dark:bg-gray-800 p-1 rounded-lg w-full">
+          <TabsTrigger
+            value="upcoming"
+            className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md py-2 transition-all"
+          >
             Upcoming ({upcomingAppointments.length})
           </TabsTrigger>
-          <TabsTrigger value="past">
+          <TabsTrigger
+            value="past"
+            className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md py-2 transition-all"
+          >
             Past ({pastAppointments.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming">
           {upcomingAppointments.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No upcoming appointments
-            </p>
+            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-md border-2 border-blue-100 dark:border-blue-900/30">
+              <p className="text-gray-500 dark:text-gray-400">
+                No upcoming appointments
+              </p>
+            </div>
           ) : (
             upcomingAppointments.map((appointment) => {
               const patient = patients.find(
@@ -229,9 +258,11 @@ export function PatientList({
 
         <TabsContent value="past">
           {pastAppointments.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No past appointments
-            </p>
+            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-md border-2 border-blue-100 dark:border-blue-900/30">
+              <p className="text-gray-500 dark:text-gray-400">
+                No past appointments
+              </p>
+            </div>
           ) : (
             pastAppointments.map((appointment) => {
               const patient = patients.find(

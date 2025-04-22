@@ -1,4 +1,3 @@
-// src/components/Calendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -65,11 +64,9 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     symptoms: "",
   });
 
-  // Start time is 7:00 AM, end time is 10:00 PM
   const startHour = 7;
   const endHour = 22;
 
-  // Generate time slots for the week
   const timeSlots = Array.from(
     { length: (endHour - startHour) * 2 },
     (_, i) => {
@@ -79,10 +76,8 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     }
   );
 
-  // Generate days for the week
   const days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
 
-  // Fetch appointments
   const query: any = {};
   if (doctorId) query.doctorId = doctorId;
   if (patientId) query.patientId = patientId;
@@ -110,14 +105,12 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     const slotDate = new Date(day);
     slotDate.setHours(time.getHours(), time.getMinutes(), 0, 0);
 
-    // If there's an existing appointment, show details
     if (existingAppointment) {
       setSelectedSlot(existingAppointment);
       setShowDetailsDialog(true);
       return;
     }
 
-    // Cannot book past slots
     if (isBefore(slotDate, new Date())) {
       toast({
         title: "Cannot book past time slots",
@@ -127,7 +120,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       return;
     }
 
-    // Create new appointment
     setSelectedSlot(null);
     setFormData({
       ...formData,
@@ -150,7 +142,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         return;
       }
 
-      // Create a new appointment
       await createAppointment.mutateAsync({
         doctorId: formData.doctorId || doctorId,
         startTime: formData.startTime.toISOString(),
@@ -206,7 +197,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
       const slotEnd = addMinutes(slotStart, 30);
 
-      // Check if appointment overlaps with this slot
       return (
         (isEqual(appointmentDate, slotStart) ||
           isAfter(appointmentDate, slotStart)) &&
@@ -220,30 +210,28 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     const slotDate = new Date(day);
     slotDate.setHours(time.getHours(), time.getMinutes(), 0, 0);
 
-    // Past slots are disabled
     if (isBefore(slotDate, now)) {
-      return "calendar-slot calendar-slot-booked opacity-50";
+      return "h-16 px-2 py-1 border rounded-md cursor-not-allowed bg-gray-100 dark:bg-gray-800 opacity-40";
     }
 
     const appointment = getSlotAppointment(day, time);
 
     if (!appointment) {
-      return "calendar-slot calendar-slot-free";
+      return "h-16 px-2 py-1 border-2 border-dashed border-blue-200 dark:border-blue-900/30 rounded-md cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
     }
 
     if (appointment.status === AppointmentStatus.OCCUPIED) {
-      return "calendar-slot calendar-slot-occupied";
+      return "h-16 px-2 py-1 border-2 border-green-500 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-md cursor-pointer transition-colors";
     }
 
     if (appointment.status === AppointmentStatus.BOOKED) {
-      // If this is the user's own booking (as a patient)
       if (user?.role === "PATIENT" && appointment.patientId) {
-        return "calendar-slot calendar-slot-own-booking";
+        return "h-16 px-2 py-1 border-2 border-blue-600 dark:border-blue-500 bg-blue-100 dark:bg-blue-900/40 rounded-md cursor-pointer hover:shadow-md transition-all";
       }
-      return "calendar-slot calendar-slot-booked";
+      return "h-16 px-2 py-1 border-2 border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 rounded-md cursor-pointer hover:shadow-md transition-all";
     }
 
-    return "calendar-slot calendar-slot-free";
+    return "h-16 px-2 py-1 border-2 border-dashed border-blue-200 dark:border-blue-900/30 rounded-md cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
   };
 
   const formatSlotTime = (time: Date) => {
@@ -251,37 +239,48 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
   };
 
   if (isLoading) {
-    return <div>Loading calendar...</div>;
+    return (
+      <div className="flex justify-center items-center h-64 text-blue-700 dark:text-blue-300">
+        <div className="animate-pulse">Loading calendar...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-background p-4 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border-2 border-blue-100 dark:border-blue-900/30">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-blue-800 dark:text-blue-300">
           {format(startDate, "MMMM d, yyyy")} -{" "}
           {format(addDays(startDate, 6), "MMMM d, yyyy")}
         </h2>
-        <div className="flex space-x-2">
-          <Button size="sm" onClick={handlePreviousWeek}>
+        <div className="flex space-x-3">
+          <Button
+            size="sm"
+            onClick={handlePreviousWeek}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+          >
             <ChevronLeft className="h-4 w-4" />
             <span className="sr-only">Previous Week</span>
           </Button>
-          <Button size="sm" onClick={handleNextWeek}>
+          <Button
+            size="sm"
+            onClick={handleNextWeek}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+          >
             <span className="sr-only">Next Week</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="calendar-container overflow-x-auto">
+      <div className="overflow-x-auto">
         <div className="grid grid-cols-8 gap-2 min-w-[800px]">
-          {/* Time column */}
           <div className="calendar-time-column">
-            <div className="h-10"></div> {/* Empty cell for day headers */}
+            <div className="h-10"></div>
             {timeSlots.map((time, i) => (
               <div
                 key={i}
-                className="calendar-time-slot h-16 flex items-center justify-end pr-2 text-sm text-muted-foreground"
+                className="h-16 flex items-center justify-end pr-2 text-sm text-blue-600 dark:text-blue-400 font-medium"
               >
                 <Clock className="h-3 w-3 mr-1" />
                 {formatSlotTime(time)}
@@ -289,12 +288,13 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
             ))}
           </div>
 
-          {/* Days columns */}
           {days.map((day, dayIndex) => (
             <div key={dayIndex} className="calendar-day">
               <div className="h-10 flex flex-col items-center justify-center font-medium">
-                <div className="text-sm">{format(day, "EEE")}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm text-blue-800 dark:text-blue-300">
+                  {format(day, "EEE")}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
                   {format(day, "MMM d")}
                 </div>
               </div>
@@ -308,7 +308,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                     onClick={() => handleSlotClick(day, time, appointment)}
                   >
                     {appointment && (
-                      <div className="text-xs truncate font-medium">
+                      <div className="text-xs truncate font-medium text-blue-700 dark:text-blue-300">
                         {appointment.title || "Appointment"}
                       </div>
                     )}
@@ -320,12 +320,13 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         </div>
       </div>
 
-      {/* Booking Dialog */}
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle>Book an Appointment</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+              Book an Appointment
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
               Fill in the details below to book your appointment.
             </DialogDescription>
           </DialogHeader>
@@ -333,7 +334,12 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label
+                  htmlFor="date"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Date
+                </Label>
                 <Input
                   id="date"
                   value={
@@ -342,10 +348,16 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                       : ""
                   }
                   disabled
+                  className="bg-gray-100 dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="time">Time</Label>
+                <Label
+                  htmlFor="time"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Time
+                </Label>
                 <Input
                   id="time"
                   value={
@@ -354,32 +366,63 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                       : ""
                   }
                   disabled
+                  className="bg-gray-100 dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration</Label>
+              <Label
+                htmlFor="duration"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Duration
+              </Label>
               <Select
                 value={formData.duration?.toString()}
                 onValueChange={(value) =>
                   setFormData({ ...formData, duration: parseInt(value) })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
-                  <SelectItem value="90">1 hour 30 minutes</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
+                <SelectContent className="bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-900">
+                  <SelectItem
+                    value="30"
+                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    30 minutes
+                  </SelectItem>
+                  <SelectItem
+                    value="60"
+                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    1 hour
+                  </SelectItem>
+                  <SelectItem
+                    value="90"
+                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    1 hour 30 minutes
+                  </SelectItem>
+                  <SelectItem
+                    value="120"
+                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    2 hours
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Appointment Title</Label>
+              <Label
+                htmlFor="title"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Appointment Title
+              </Label>
               <Input
                 id="title"
                 placeholder="e.g., Regular checkup"
@@ -387,11 +430,17 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="symptoms">Symptoms / Reason for Visit</Label>
+              <Label
+                htmlFor="symptoms"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Symptoms / Reason for Visit
+              </Label>
               <Textarea
                 id="symptoms"
                 placeholder="Please describe your symptoms or reason for the visit..."
@@ -400,20 +449,23 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, symptoms: e.target.value })
                 }
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-3 mt-2">
             <Button
               variant="outline"
               onClick={() => setShowBookingDialog(false)}
+              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmitBooking}
               disabled={createAppointment.isLoading}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
             >
               {createAppointment.isLoading ? "Booking..." : "Book Appointment"}
             </Button>
@@ -421,70 +473,76 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Appointment Details Dialog */}
       {selectedSlot && (
         <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent>
+          <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
             <DialogHeader>
-              <DialogTitle>Appointment Details</DialogTitle>
+              <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+                Appointment Details
+              </DialogTitle>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     Date
                   </h3>
-                  <p>
+                  <p className="text-blue-700 dark:text-blue-300 font-medium">
                     {format(new Date(selectedSlot.startTime), "MMMM d, yyyy")}
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     Time
                   </h3>
-                  <p>
+                  <p className="text-blue-700 dark:text-blue-300 font-medium">
                     {format(new Date(selectedSlot.startTime), "h:mm a")} -{" "}
                     {format(new Date(selectedSlot.endTime), "h:mm a")}
                   </p>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                   Title
                 </h3>
-                <p>{selectedSlot.title || "Not specified"}</p>
+                <p className="text-blue-800 dark:text-blue-300">
+                  {selectedSlot.title || "Not specified"}
+                </p>
               </div>
 
               {selectedSlot.symptoms && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Symptoms / Reason
                   </h3>
-                  <p className="whitespace-pre-wrap">{selectedSlot.symptoms}</p>
+                  <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                    {selectedSlot.symptoms}
+                  </p>
                 </div>
               )}
 
               {selectedSlot.medicalRecord?.doctorNotes && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Doctor Notes
                   </h3>
-                  <p className="whitespace-pre-wrap">
+                  <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                     {selectedSlot.medicalRecord.doctorNotes}
                   </p>
                 </div>
               )}
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="gap-3 mt-2">
               {selectedSlot.status === AppointmentStatus.BOOKED &&
                 user?.role === "PATIENT" && (
                   <Button
                     variant="destructive"
                     onClick={handleCancelAppointment}
                     disabled={deleteAppointment.isLoading}
+                    className="bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-70"
                   >
                     {deleteAppointment.isLoading
                       ? "Cancelling..."
@@ -494,6 +552,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
               <Button
                 variant="outline"
                 onClick={() => setShowDetailsDialog(false)}
+                className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Close
               </Button>

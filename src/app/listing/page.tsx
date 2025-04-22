@@ -6,7 +6,7 @@ import { UserPlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 import { DoctorCard } from "@/components/DoctorCard";
 import { PatientList } from "@/components/PatientList";
 import {
@@ -216,9 +216,9 @@ export default function ListingPage() {
       : "doctors";
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">
+    <div className="p-6 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-sm space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-blue-100 dark:border-gray-700 pb-4">
+        <h1 className="text-3xl font-bold text-blue-800 dark:text-blue-300">
           {user?.role === "PATIENT"
             ? "Doctors Directory"
             : user?.role === "DOCTOR"
@@ -226,20 +226,23 @@ export default function ListingPage() {
             : "Manage Users"}
         </h1>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-blue-500 dark:text-blue-400" />
             <Input
               type="search"
               placeholder="Search..."
-              className="pl-8"
+              className="pl-10 h-12 bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
           {user?.role === "ADMIN" && (
-            <Button onClick={handleAddNewDoctor}>
+            <Button
+              onClick={handleAddNewDoctor}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 h-12 px-5 rounded-lg shadow-sm transition-colors"
+            >
               <UserPlus className="h-4 w-4 mr-2" />
               Add Doctor
             </Button>
@@ -248,18 +251,32 @@ export default function ListingPage() {
       </div>
 
       {user?.role === "ADMIN" ? (
-        <Tabs defaultValue={defaultTab}>
-          <TabsList>
-            <TabsTrigger value="doctors">Doctors</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
+        <Tabs defaultValue={defaultTab} className="mt-6">
+          <TabsList className="bg-blue-100 dark:bg-gray-800 p-1 rounded-lg">
+            <TabsTrigger
+              value="doctors"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md px-6 py-2 transition-all"
+            >
+              Doctors
+            </TabsTrigger>
+            <TabsTrigger
+              value="patients"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 rounded-md px-6 py-2 transition-all"
+            >
+              Patients
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="doctors">
+          <TabsContent value="doctors" className="mt-6">
             {loadingDoctors ? (
-              <div>Loading doctors...</div>
+              <div className="flex justify-center py-12 text-blue-700 dark:text-blue-300">
+                <div className="animate-pulse">Loading doctors...</div>
+              </div>
             ) : filteredDoctors.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No doctors found</p>
+              <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-md">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No doctors found
+                </p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -276,31 +293,39 @@ export default function ListingPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="patients">
-            <PatientList
-              appointments={appointments}
-              isLoading={loadingAppointments}
-              onMarkAttended={handleMarkAttended}
-              onMarkMissed={handleMarkMissed}
-              onAddNotes={handleAddMedicalRecord}
-            />
+          <TabsContent value="patients" className="mt-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4">
+              <PatientList
+                appointments={appointments}
+                isLoading={loadingAppointments}
+                onMarkAttended={handleMarkAttended}
+                onMarkMissed={handleMarkMissed}
+                onAddNotes={handleAddMedicalRecord}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       ) : user?.role === "DOCTOR" ? (
-        <PatientList
-          appointments={appointments}
-          isLoading={loadingAppointments}
-          onMarkAttended={handleMarkAttended}
-          onMarkMissed={handleMarkMissed}
-          onAddNotes={handleAddMedicalRecord}
-        />
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 mt-6">
+          <PatientList
+            appointments={appointments}
+            isLoading={loadingAppointments}
+            onMarkAttended={handleMarkAttended}
+            onMarkMissed={handleMarkMissed}
+            onAddNotes={handleAddMedicalRecord}
+          />
+        </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
           {loadingDoctors ? (
-            <div>Loading doctors...</div>
+            <div className="col-span-full flex justify-center py-12 text-blue-700 dark:text-blue-300">
+              <div className="animate-pulse">Loading doctors...</div>
+            </div>
           ) : filteredDoctors.length === 0 ? (
-            <div className="text-center py-12 col-span-full">
-              <p className="text-muted-foreground">No doctors found</p>
+            <div className="text-center py-12 col-span-full bg-white dark:bg-gray-900 rounded-xl shadow-md">
+              <p className="text-gray-500 dark:text-gray-400">
+                No doctors found
+              </p>
             </div>
           ) : (
             filteredDoctors.map((doctor) => (
@@ -312,12 +337,12 @@ export default function ListingPage() {
 
       {/* Add/Edit Doctor Dialog */}
       <Dialog open={showDoctorDialog} onOpenChange={setShowDoctorDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-gray-700 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-blue-800 dark:text-blue-300">
               {editingDoctor ? "Edit Doctor" : "Add New Doctor"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
               {editingDoctor
                 ? "Update the doctor's information below."
                 : "Fill in the details to add a new doctor to the system."}
@@ -327,7 +352,12 @@ export default function ListingPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label
+                  htmlFor="firstName"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  First Name
+                </Label>
                 <Input
                   id="firstName"
                   value={doctorFormData.firstName}
@@ -337,11 +367,17 @@ export default function ListingPage() {
                       firstName: e.target.value,
                     })
                   }
+                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label
+                  htmlFor="lastName"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Last Name
+                </Label>
                 <Input
                   id="lastName"
                   value={doctorFormData.lastName}
@@ -351,12 +387,18 @@ export default function ListingPage() {
                       lastName: e.target.value,
                     })
                   }
+                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -368,12 +410,18 @@ export default function ListingPage() {
                   })
                 }
                 disabled={!!editingDoctor}
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-70 disabled:bg-gray-100 dark:disabled:bg-gray-800"
               />
             </div>
 
             {!editingDoctor && (
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Password
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -384,12 +432,18 @@ export default function ListingPage() {
                       password: e.target.value,
                     })
                   }
+                  className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label
+                htmlFor="phone"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Phone
+              </Label>
               <Input
                 id="phone"
                 value={doctorFormData.phone}
@@ -399,11 +453,17 @@ export default function ListingPage() {
                     phone: e.target.value,
                   })
                 }
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="specialization">Specialization</Label>
+              <Label
+                htmlFor="specialization"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Specialization
+              </Label>
               <Input
                 id="specialization"
                 value={doctorFormData.specialization}
@@ -413,11 +473,17 @@ export default function ListingPage() {
                     specialization: e.target.value,
                   })
                 }
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="education">Education & Qualifications</Label>
+              <Label
+                htmlFor="education"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Education & Qualifications
+              </Label>
               <Textarea
                 id="education"
                 value={doctorFormData.education}
@@ -428,20 +494,23 @@ export default function ListingPage() {
                   })
                 }
                 rows={3}
+                className="border-2 border-blue-200 dark:border-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-3 mt-2">
             <Button
               variant="outline"
               onClick={() => setShowDoctorDialog(false)}
+              className="border-2 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmitDoctorForm}
               disabled={createDoctor.isLoading || updateDoctor.isLoading}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70"
             >
               {editingDoctor ? "Update Doctor" : "Add Doctor"}
             </Button>
