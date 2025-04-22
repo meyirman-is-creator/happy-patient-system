@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/lib/hooks/useAuth";
 
@@ -12,12 +12,16 @@ export default function DashboardLayout({
 }) {
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    // Prevent redirect loops
+    if (!loading && !isAuthenticated && !isRedirecting) {
+      setIsRedirecting(true);
       router.push("/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router, isRedirecting]);
 
   if (loading) {
     return (
@@ -27,7 +31,9 @@ export default function DashboardLayout({
     );
   }
 
-  if (!user) return null;
+  if (!user && !loading && !isRedirecting) {
+    return null;
+  }
 
   return (
     <>

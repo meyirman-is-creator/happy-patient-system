@@ -3,21 +3,35 @@ import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 
+// Define update profile schema
+const updateProfileSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  phone: z.string().min(6).optional(),
+});
+
 // Helper to get user ID from token
 const getUserIdFromToken = (request: Request): string | null => {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.split(" ")[1];
-
   try {
-    const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
-      id: string;
-    };
-    return decoded.id;
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return null;
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+      // Make sure to use the exact same secret as when signing the token
+      const decoded = verify(token, process.env.JWT_SECRET || "secret") as {
+        id: string;
+      };
+      return decoded.id;
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return null;
+    }
   } catch (error) {
+    console.error("Error getting user from token:", error);
     return null;
   }
 };
@@ -56,13 +70,6 @@ export async function GET(request: Request) {
     );
   }
 }
-
-// Update profile schema
-const updateProfileSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  phone: z.string().min(6).optional(),
-});
 
 // PUT update current user
 export async function PUT(request: Request) {

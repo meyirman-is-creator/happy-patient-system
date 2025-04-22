@@ -9,13 +9,24 @@ interface AuthState {
   error: string | null;
 }
 
+// Initialize with null, then check localStorage in a safer way
 const initialState: AuthState = {
   user: null,
-  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
+  token: null,
   isAuthenticated: false,
   loading: false,
   error: null,
 };
+
+// Try to get token from localStorage if in browser environment
+if (typeof window !== "undefined") {
+  try {
+    initialState.token = localStorage.getItem("token");
+    initialState.isAuthenticated = !!initialState.token;
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+  }
+}
 
 const authSlice = createSlice({
   name: "auth",
@@ -36,7 +47,11 @@ const authSlice = createSlice({
       state.error = null;
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("token", action.payload.token);
+        try {
+          localStorage.setItem("token", action.payload.token);
+        } catch (error) {
+          console.error("Error saving token to localStorage:", error);
+        }
       }
     },
     loginFailure: (state, action: PayloadAction<string>) => {
@@ -49,7 +64,11 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
 
       if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
+        try {
+          localStorage.removeItem("token");
+        } catch (error) {
+          console.error("Error removing token from localStorage:", error);
+        }
       }
     },
     updateUserSuccess: (state, action: PayloadAction<User>) => {

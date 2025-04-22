@@ -1,4 +1,4 @@
-// src/lib/hooks/useAuth.ts (update exports)
+// src/lib/hooks/useAuth.ts
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,21 +19,50 @@ export const useAuth = () => {
   const { user, token, isAuthenticated, loading, error } = useAppSelector(
     (state) => state.auth
   );
+  const [tokenChecked, setTokenChecked] = useState(false);
+
+  // Check if token exists in localStorage on mount
+  useEffect(() => {
+    const storedToken =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    // If we have a token in Redux but it doesn't match localStorage, update Redux
+    if (token !== storedToken) {
+      if (storedToken) {
+        // We have a token in localStorage but not in Redux, set authenticated state
+        dispatch(
+          loginSuccess({
+            user: null, // We'll get the user info from the API
+            token: storedToken,
+          })
+        );
+      } else if (token) {
+        // We have a token in Redux but not in localStorage, likely an error
+        dispatch(logoutAction());
+      }
+    }
+
+    setTokenChecked(true);
+  }, [dispatch, token]);
 
   // Get current user
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: auth.getMe,
-    enabled: !!token,
-    retry: false,
+    enabled: !!token && tokenChecked, // Only run if token exists and initial token check is done
+    retry: 1, // Try once more if it fails
+    staleTime: 5 * 60 * 1000, // 5 minutes
     onSuccess: (data) => {
       if (data) {
+        // Set user data in Redux if we get it
         dispatch(updateUserSuccess(data));
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error fetching user data:", error);
+      // Clear token and state on auth error
       dispatch(logoutAction());
-      router.push("/login");
+      // Don't redirect here, let the layout handle it
     },
   });
 
@@ -52,6 +81,11 @@ export const useAuth = () => {
       dispatch(loginStart());
     },
     onSuccess: (data) => {
+      // Ensure token is stored in localStorage
+      if (typeof window !== "undefined" && data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
       dispatch(loginSuccess({ user: data.user, token: data.token }));
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
 
@@ -63,7 +97,8 @@ export const useAuth = () => {
       }
     },
     onError: (error: any) => {
-      dispatch(loginFailure(error.message));
+      console.error("Login error:", error);
+      dispatch(loginFailure(error.message || "Authentication failed"));
     },
   });
 
@@ -83,6 +118,9 @@ export const useAuth = () => {
 
   // Logout function
   const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
     dispatch(logoutAction());
     queryClient.clear();
     router.push("/login");

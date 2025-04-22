@@ -3,22 +3,23 @@ import type { NextRequest } from "next/server";
 import { verify } from "jsonwebtoken";
 
 // Define paths that do not require authentication
-const publicPaths = ["/login", "/register"];
+const publicPaths = [
+  "/login",
+  "/register",
+  "/api/auth/login",
+  "/api/auth/register",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if the path is public
-  if (publicPaths.includes(pathname)) {
+  if (publicPaths.some((path) => pathname.includes(path))) {
     return NextResponse.next();
   }
 
-  // Check if it's an API route (exclude authentication routes)
-  if (
-    pathname.startsWith("/api") &&
-    !pathname.startsWith("/api/auth/login") &&
-    !pathname.startsWith("/api/auth/register")
-  ) {
+  // Check if it's an API route
+  if (pathname.startsWith("/api")) {
     // Get the authorization header
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -29,10 +30,11 @@ export function middleware(request: NextRequest) {
     const token = authHeader.split(" ")[1];
 
     try {
-      // Verify token
+      // Verify token using the exact same secret that was used to sign it
       verify(token, process.env.JWT_SECRET || "secret");
       return NextResponse.next();
     } catch (error) {
+      console.error("Token verification error:", error);
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
   }
@@ -44,12 +46,9 @@ export function middleware(request: NextRequest) {
 // Configure the middleware to run only for specific paths
 export const config = {
   matcher: [
-    // Match all API routes except auth routes
+    // Match all API routes
     "/api/:path*",
     // Match all protected pages
-    "/",
-    "/calendar/:path*",
-    "/listing/:path*",
-    "/profile/:path*",
+    "/((?!login|register|_next/static|_next/image|favicon.ico).*)",
   ],
 };

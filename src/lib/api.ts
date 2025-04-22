@@ -1,25 +1,54 @@
+// src/lib/api.ts
 import { Appointment, Doctor, Patient, User, MedicalRecord } from "./types";
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("token");
+  let token = null;
 
+  // Only access localStorage in browser environment
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("token");
+  }
+
+  // Create headers with correct Authorization format
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Something went wrong");
+    if (!response.ok) {
+      // Log the actual response for debugging
+      const errorText = await response.text();
+      console.error(`API Error (${response.status}):`, errorText);
+
+      // Try to parse as JSON if possible
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { message: errorText || "Something went wrong" };
+      }
+
+      // If unauthorized and in browser, consider clearing token
+      if (response.status === 401 && typeof window !== "undefined") {
+        console.warn("Authentication error - clearing token");
+        localStorage.removeItem("token");
+      }
+
+      throw new Error(errorData.message || "Something went wrong");
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
   }
-
-  return response.json();
 }
 
 // Auth API
@@ -47,7 +76,7 @@ export const auth = {
     }),
 };
 
-// Appointments API
+// Rest of the code remains the same...
 export const appointments = {
   getAll: (params?: any) => {
     const queryParams = params
@@ -85,7 +114,6 @@ export const appointments = {
     }),
 };
 
-// Doctors API
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),
@@ -105,7 +133,6 @@ export const doctors = {
     }),
 };
 
-// Patients API
 export const patients = {
   getAll: () => fetchWithAuth("/api/patients"),
   getById: (id: string) => fetchWithAuth(`/api/patients/${id}`),
@@ -113,7 +140,6 @@ export const patients = {
     fetchWithAuth(`/api/patients/${id}/medical-records`),
 };
 
-// Medical Records API
 export const medicalRecords = {
   create: (data: any) =>
     fetchWithAuth("/api/medical-records", {

@@ -47,10 +47,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ensure we use a consistent secret for signing
+    const JWT_SECRET = process.env.JWT_SECRET || "secret";
+
     // Generate JWT token
     const token = sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || "secret",
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 
