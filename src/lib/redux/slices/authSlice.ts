@@ -1,5 +1,7 @@
+// src/lib/redux/slices/authSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/lib/types";
+import { getCookie } from "cookies-next";
 
 interface AuthState {
   user: User | null;
@@ -9,7 +11,7 @@ interface AuthState {
   error: string | null;
 }
 
-// Initialize state
+// Initialize state with cookies instead of localStorage
 const initialState: AuthState = {
   user: null,
   token: null,
@@ -18,17 +20,17 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Try to get token from localStorage if in browser environment
+// Try to get token from cookies if in browser environment
 if (typeof window !== "undefined") {
   try {
-    const token = localStorage.getItem("token");
+    const token = getCookie("auth_token");
     if (token) {
-      initialState.token = token;
+      initialState.token = token as string;
       initialState.isAuthenticated = true;
-      console.log("Initialized auth with token from localStorage");
+      console.log("Initialized auth with token from cookies");
     }
   } catch (error) {
-    console.error("Error accessing localStorage:", error);
+    console.error("Error accessing cookies:", error);
   }
 }
 
@@ -50,7 +52,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
 
-      // Token is saved to localStorage in the login function
+      // Token is saved to cookies in the login function
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
@@ -62,7 +64,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
 
-      // Token is removed from localStorage in the logout function
+      // Token is removed from cookies in the logout function
     },
     updateUserSuccess: (state, action: PayloadAction<User>) => {
       state.user = action.payload;

@@ -11,6 +11,7 @@ import {
   logout as logoutAction,
   updateUserSuccess,
 } from "../redux/slices/authSlice";
+import { setCookie, getCookie, deleteCookie } from "cookies-next";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -21,26 +22,25 @@ export const useAuth = () => {
   );
   const [tokenChecked, setTokenChecked] = useState(false);
 
-  // Проверяем, существует ли token в localStorage при монтировании
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const storedToken =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const storedToken = getCookie("auth_token");
 
-        // Если токен есть в localStorage, но не в Redux
         if (storedToken && !token) {
           dispatch(
             loginSuccess({
-              user: null, // Получим информацию о пользователе из API
-              token: storedToken,
+              user: null,
+              token: storedToken as string,
             })
           );
         } else if (!storedToken && token) {
-          // Токен есть в Redux, но не в localStorage
-          if (typeof window !== "undefined") {
-            localStorage.setItem("token", token);
-          }
+          setCookie("auth_token", token, {
+            maxAge: 7 * 24 * 60 * 60,
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+          });
         }
       } catch (error) {
         console.error("Error checking token:", error);
@@ -52,13 +52,12 @@ export const useAuth = () => {
     checkToken();
   }, [dispatch, token]);
 
-  // Получаем текущего пользователя
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: auth.getMe,
-    enabled: !!token && tokenChecked && typeof window !== "undefined", // Запускаем только при наличии токена
+    enabled: !!token && tokenChecked,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000,
     onSuccess: (data) => {
       if (data) {
         dispatch(updateUserSuccess(data));
@@ -67,29 +66,47 @@ export const useAuth = () => {
     onError: (error) => {
       console.error("Error fetching user data:", error);
       dispatch(logoutAction());
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
+      deleteCookie("auth_token");
+    },
+  });
+
+  const register = useMutation({
+    mutationFn: auth.register,
+    onSuccess: (data) => {
+      if (data.token) {
+        setCookie("auth_token", data.token, {
+          maxAge: 7 * 24 * 60 * 60,
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
+        dispatch(loginSuccess({ user: data.user, token: data.token }));
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+
+        if (data.user.role === "PATIENT") {
+          router.push("/calendar");
+        } else {
+          router.push("/");
+        }
+      } else {
+        router.push("/login");
       }
     },
   });
 
-  // Регистрация
-  const register = useMutation({
-    mutationFn: auth.register,
-    onSuccess: () => {
-      router.push("/login");
-    },
-  });
-
-  // Вход
   const login = useMutation({
     mutationFn: auth.login,
     onMutate: () => {
       dispatch(loginStart());
     },
     onSuccess: (data) => {
-      if (typeof window !== "undefined" && data.token) {
-        localStorage.setItem("token", data.token);
+      if (data.token) {
+        setCookie("auth_token", data.token, {
+          maxAge: 7 * 24 * 60 * 60,
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
       }
 
       dispatch(loginSuccess({ user: data.user, token: data.token }));
@@ -107,7 +124,6 @@ export const useAuth = () => {
     },
   });
 
-  // Обновление профиля
   const updateUser = useMutation({
     mutationFn: auth.updateMe,
     onSuccess: (data) => {
@@ -116,16 +132,12 @@ export const useAuth = () => {
     },
   });
 
-  // Обновление пароля
   const updatePassword = useMutation({
     mutationFn: auth.updatePassword,
   });
 
-  // Выход
   const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-    }
+    deleteCookie("auth_token");
     dispatch(logoutAction());
     queryClient.clear();
     router.push("/login");

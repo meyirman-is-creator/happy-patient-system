@@ -1,3 +1,4 @@
+// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -39,12 +40,8 @@ export default function LoginPage() {
     }
 
     try {
-      console.log("Попытка входа с:", { email: formData.email });
       await login.mutateAsync(formData);
-      console.log("Вход успешен!");
-      // Redirect is handled in the useAuth hook
     } catch (error: any) {
-      console.error("Ошибка входа:", error);
       toast({
         title: "Ошибка входа",
         description: error.message || "Произошла ошибка при входе.",
@@ -54,88 +51,90 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 border border-[#0A6EFF]/10">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 rounded-full bg-[#0A6EFF] flex items-center justify-center mb-4">
-          <HeartPulse className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-1 text-[#243352]">
-          Вход в систему
-        </h2>
-        <p className="text-[#243352]/70 text-sm">
-          Введите данные для доступа к системе
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-[#243352] font-medium">
-            Email
-          </Label>
-          <div className="relative">
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="example@mail.ru"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4"
-            />
+    <div className="flex justify-center items-center min-h-screen bg-[#F8FAFC]">
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-[#0A6EFF]/10 w-full max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 rounded-full bg-[#0A6EFF] flex items-center justify-center mb-4">
+            <HeartPulse className="h-8 w-8 text-white" />
           </div>
+          <h2 className="text-2xl font-bold mb-1 text-[#243352]">
+            Вход в систему
+          </h2>
+          <p className="text-[#243352]/70 text-sm">
+            Введите данные для доступа к системе
+          </p>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="password" className="text-[#243352] font-medium">
-              Пароль
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-[#243352] font-medium">
+              Email
             </Label>
+            <div className="relative">
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="example@mail.ru"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4"
+              />
+            </div>
           </div>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 pr-10"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center pr-3"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5 text-[#243352]/60" />
-              ) : (
-                <Eye className="h-5 w-5 text-[#243352]/60" />
-              )}
-            </button>
+
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <Label htmlFor="password" className="text-[#243352] font-medium">
+                Пароль
+              </Label>
+            </div>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 pr-10"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-[#243352]/60" />
+                ) : (
+                  <Eye className="h-5 w-5 text-[#243352]/60" />
+                )}
+              </button>
+            </div>
           </div>
+
+          {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+
+          <Button
+            type="submit"
+            className="w-full h-12 text-base font-medium bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
+            disabled={loading}
+          >
+            {loading ? "Выполняется вход..." : "Войти"}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center text-sm">
+          Нет аккаунта?{" "}
+          <Link
+            href="/register"
+            className="text-[#0A6EFF] font-medium hover:underline"
+          >
+            Зарегистрироваться
+          </Link>
         </div>
-
-        {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
-
-        <Button
-          type="submit"
-          className="w-full h-12 text-base font-medium bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
-          disabled={loading}
-        >
-          {loading ? "Выполняется вход..." : "Войти"}
-        </Button>
-      </form>
-
-      <div className="mt-6 text-center text-sm">
-        Нет аккаунта?{" "}
-        <Link
-          href="/register"
-          className="text-[#0A6EFF] font-medium hover:underline"
-        >
-          Зарегистрироваться
-        </Link>
       </div>
     </div>
   );

@@ -1,14 +1,13 @@
 // src/lib/api.ts
 import { Appointment, Doctor, Patient, User, MedicalRecord } from "./types";
+import { getCookie } from "cookies-next";
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   let token = null;
 
-  // Only access localStorage in browser environment
-  if (typeof window !== "undefined") {
-    token = localStorage.getItem("token");
-    console.log("Using token from localStorage:", token ? "exists" : "missing");
-  }
+  // Get token from cookies
+  token = getCookie("auth_token");
+  console.log("Using token from cookies:", token ? "exists" : "missing");
 
   // Create headers with correct Authorization format
   const headers = {
@@ -34,12 +33,6 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
         errorData = JSON.parse(errorText);
       } catch (e) {
         errorData = { message: errorText || "Something went wrong" };
-      }
-
-      // If unauthorized and in browser, consider clearing token
-      if (response.status === 401 && typeof window !== "undefined") {
-        console.warn("Authentication error - clearing token");
-        localStorage.removeItem("token");
       }
 
       throw new Error(errorData.message || "Something went wrong");
@@ -77,7 +70,7 @@ export const auth = {
     }),
 };
 
-// Rest of the API functions remain the same...
+// The rest of your API functions remain unchanged
 export const appointments = {
   getAll: (params?: any) => {
     const queryParams = params
