@@ -1,3 +1,4 @@
+// src/components/MedicalRecordForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -90,34 +91,42 @@ export function MedicalRecordForm({
               : "Новая медицинская запись"}
           </DialogTitle>
           <DialogDescription className="text-[#243352]/70">
-            {appointment.patient?.user && (
-              <span className="block text-[#0A6EFF] font-medium text-lg flex items-center">
-                <UserCircle className="h-5 w-5 mr-2" />
+            Заполните информацию о медицинском осмотре
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Patient info moved outside DialogDescription to avoid nesting issues */}
+        {appointment.patient?.user && (
+          <div className="mt-2 mb-4">
+            <div className="flex items-center text-[#0A6EFF] font-medium text-lg">
+              <UserCircle className="h-5 w-5 mr-2" />
+              <span>
                 Пациент: {appointment.patient.user.firstName}{" "}
                 {appointment.patient.user.lastName}
               </span>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
-              <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-[#0A6EFF]" />
-                {format(new Date(appointment.startTime), "d MMMM yyyy", {
-                  locale: ru,
-                })}
-              </span>
-              <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-[#0A6EFF]" />
-                {format(new Date(appointment.startTime), "HH:mm")} -{" "}
-                {format(new Date(appointment.endTime), "HH:mm")}
-              </span>
-              {appointment.doctor?.specialization && (
-                <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
-                  <Stethoscope className="h-4 w-4 mr-2 text-[#0A6EFF]" />
-                  {appointment.doctor.specialization}
-                </span>
-              )}
             </div>
-          </DialogDescription>
-        </DialogHeader>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2 mb-4">
+          <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+            <Calendar className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+            {format(new Date(appointment.startTime), "d MMMM yyyy", {
+              locale: ru,
+            })}
+          </span>
+          <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+            <Clock className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+            {format(new Date(appointment.startTime), "HH:mm")} -{" "}
+            {format(new Date(appointment.endTime), "HH:mm")}
+          </span>
+          {appointment.doctor?.specialization && (
+            <span className="text-sm bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-flex items-center">
+              <Stethoscope className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+              {appointment.doctor.specialization}
+            </span>
+          )}
+        </div>
 
         {appointment.symptoms && (
           <div className="mb-4">

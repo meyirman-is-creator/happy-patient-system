@@ -1,5 +1,3 @@
-// src/lib/api.ts
-import { Appointment, Doctor, Patient, User, MedicalRecord } from "./types";
 import { getCookie } from "cookies-next";
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
@@ -7,7 +5,6 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   // Get token from cookies
   token = getCookie("auth_token");
-  console.log("Using token from cookies:", token ? "exists" : "missing");
 
   // Create headers with correct Authorization format
   const headers = {
@@ -17,6 +14,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   };
 
   try {
+    console.log(`API Request: ${options.method || "GET"} ${url}`);
+
     const response = await fetch(url, {
       ...options,
       headers,
@@ -38,7 +37,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       throw new Error(errorData.message || "Something went wrong");
     }
 
-    return response.json();
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;
@@ -57,7 +57,36 @@ export const auth = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getMe: () => fetchWithAuth("/api/users/me"),
+  getMe: async () => {
+    try {
+      console.log("Calling /api/users/me to fetch user data");
+      const response = await fetch("/api/users/me", {
+        headers: {
+          Authorization: `Bearer ${getCookie("auth_token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Error fetching user: HTTP ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch user data");
+      }
+
+      const userData = await response.json();
+      console.log("User data fetched successfully:", userData);
+
+      if (!userData || !userData.id) {
+        console.error("Invalid user data received:", userData);
+        throw new Error("Invalid user data received");
+      }
+
+      return userData;
+    } catch (error) {
+      console.error("getMe error:", error);
+      throw error;
+    }
+  },
+
   updateMe: (data: any) =>
     fetchWithAuth("/api/users/me", {
       method: "PUT",
@@ -69,8 +98,6 @@ export const auth = {
       body: JSON.stringify(data),
     }),
 };
-
-// The rest of your API functions remain unchanged
 export const appointments = {
   getAll: (params?: any) => {
     const queryParams = params
@@ -107,7 +134,6 @@ export const appointments = {
       body: JSON.stringify(data),
     }),
 };
-
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),

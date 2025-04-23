@@ -1,3 +1,4 @@
+// src/app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { z } from "zod";
@@ -13,6 +14,7 @@ const loginSchema = z.object({
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log("Login attempt for:", body.email);
 
     // Validate input
     const validatedData = loginSchema.parse(body);
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      console.log("User not found:", validatedData.email);
       return NextResponse.json(
         { message: "Invalid email or password" },
         { status: 401 }
@@ -41,21 +44,22 @@ export async function POST(request: Request) {
     );
 
     if (!passwordMatch) {
+      console.log("Invalid password for:", validatedData.email);
       return NextResponse.json(
         { message: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Generate JWT token with jose - include only necessary fields
-    const payload = { 
-      id: user.id, 
-      email: user.email, 
-      role: user.role 
+    // Generate JWT token with minimal payload
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
     };
-    
-    console.log("Creating token with payload:", payload);
-    
+
+    console.log("Creating token with payload:", JSON.stringify(payload));
+
     const token = await createToken(payload);
 
     // Log created token (first few characters only for security)

@@ -11,12 +11,21 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/hooks/useAuth";
 
+type FormData = {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
     confirmPassword: "",
@@ -26,16 +35,14 @@ export default function RegisterPage() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Проверка данных
+  const validateForm = (): { valid: boolean; message?: string } => {
     if (
       !formData.email ||
       !formData.password ||
@@ -43,20 +50,34 @@ export default function RegisterPage() {
       !formData.lastName ||
       !formData.phone
     ) {
-      toast({
-        title: "Отсутствует информация",
-        description: "Пожалуйста, заполните все обязательные поля.",
-        variant: "destructive",
-      });
-      return;
+      return {
+        valid: false,
+        message: "Пожалуйста, заполните все обязательные поля.",
+      };
     }
 
     if (formData.password !== formData.confirmPassword) {
+      return {
+        valid: false,
+        message: "Убедитесь, что оба пароля совпадают.",
+      };
+    }
+
+    return { valid: true };
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const validation = validateForm();
+    if (!validation.valid) {
       toast({
-        title: "Пароли не совпадают",
-        description: "Убедитесь, что оба пароля совпадают.",
+        title: "Ошибка валидации",
+        description: validation.message,
         variant: "destructive",
       });
+      setIsSubmitting(false);
       return;
     }
 
@@ -65,6 +86,7 @@ export default function RegisterPage() {
       toast({
         title: "Регистрация успешна",
         description: "Ваш аккаунт создан. Пожалуйста, войдите в систему.",
+        variant: "success",
       });
       router.push("/login");
     } catch (error: any) {
@@ -73,159 +95,164 @@ export default function RegisterPage() {
         description: error.message || "Произошла ошибка при регистрации.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 border border-[#0A6EFF]/10">
-      <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 rounded-full bg-[#0A6EFF] flex items-center justify-center mb-4">
-          <HeartPulse className="h-8 w-8 text-white" />
+    <div className="flex justify-center items-center min-h-screen bg-[#F8FAFC]">
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-[#0A6EFF]/10 w-full max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 rounded-full bg-[#0A6EFF] flex items-center justify-center mb-4">
+            <HeartPulse className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2 text-[#243352]">
+            Создание аккаунта
+          </h2>
+          <p className="text-[#243352]/70 text-sm">
+            Заполните форму для регистрации в системе
+          </p>
         </div>
-        <h2 className="text-2xl font-bold mb-1 text-[#243352]">
-          Создание аккаунта
-        </h2>
-        <p className="text-[#243352]/70 text-sm">
-          Заполните форму для регистрации в системе
-        </p>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName" className="text-[#243352] font-medium">
+                Имя
+              </Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                placeholder="Иван"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 rounded-lg"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName" className="text-[#243352] font-medium">
+                Фамилия
+              </Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                placeholder="Петров"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 rounded-lg"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-[#243352] font-medium">
-              Имя
+            <Label htmlFor="email" className="text-[#243352] font-medium">
+              Email
             </Label>
             <Input
-              id="firstName"
-              name="firstName"
-              placeholder="Иван"
-              value={formData.firstName}
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@mail.ru"
+              value={formData.email}
               onChange={handleChange}
               required
-              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
+              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 rounded-lg"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-[#243352] font-medium">
-              Фамилия
+            <Label htmlFor="phone" className="text-[#243352] font-medium">
+              Номер телефона
             </Label>
             <Input
-              id="lastName"
-              name="lastName"
-              placeholder="Петров"
-              value={formData.lastName}
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="+7 (999) 123-45-67"
+              value={formData.phone}
               onChange={handleChange}
               required
-              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
+              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 rounded-lg"
             />
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-[#243352] font-medium">
-            Email
-          </Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="example@mail.ru"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-[#243352] font-medium">
+              Пароль
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 pr-10 rounded-lg"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#243352]/60 hover:text-[#243352] transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="text-[#243352] font-medium">
-            Номер телефона
-          </Label>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="+7 (999) 123-45-67"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-[#243352] font-medium">
-            Пароль
-          </Label>
-          <div className="relative">
+          <div className="space-y-2">
+            <Label
+              htmlFor="confirmPassword"
+              className="text-[#243352] font-medium"
+            >
+              Подтвердите пароль
+            </Label>
             <Input
-              id="password"
-              name="password"
+              id="confirmPassword"
+              name="confirmPassword"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              value={formData.password}
+              value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] pr-10"
+              className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 pl-4 rounded-lg"
             />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center pr-3"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5 text-[#243352]/60" />
-              ) : (
-                <Eye className="h-5 w-5 text-[#243352]/60" />
-              )}
-            </button>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label
-            htmlFor="confirmPassword"
-            className="text-[#243352] font-medium"
+          <Button
+            type="submit"
+            className="w-full bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white font-medium h-12 rounded-lg shadow-md transition-colors"
+            disabled={isSubmitting}
           >
-            Подтвердите пароль
-          </Label>
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="••••••••"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            className="border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF]"
-          />
+            {isSubmitting ? "Создание аккаунта..." : "Зарегистрироваться"}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center text-sm">
+          <span className="text-[#243352]/70">Уже есть аккаунт?</span>{" "}
+          <Link
+            href="/login"
+            className="text-[#0A6EFF] font-medium hover:underline transition-colors"
+          >
+            Войти
+          </Link>
         </div>
-
-        <Button
-          type="submit"
-          className="w-full bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
-          disabled={register.isLoading}
-        >
-          {register.isLoading ? "Создание аккаунта..." : "Зарегистрироваться"}
-        </Button>
-      </form>
-
-      <div className="mt-6 text-center text-sm">
-        Уже есть аккаунт?{" "}
-        <Link
-          href="/login"
-          className="text-[#0A6EFF] font-medium hover:underline"
-        >
-          Войти
-        </Link>
       </div>
     </div>
   );
 }
 
-function HeartPulse(props: { className?: string }) {
+function HeartPulse(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

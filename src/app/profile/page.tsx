@@ -1,9 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { User, Mail, Phone, Lock, Calendar, FileText, UserCircle, Edit, ChevronDown } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Calendar,
+  FileText,
+  UserCircle,
+  Edit,
+  ChevronDown,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +43,16 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import {
   usePatientMedicalRecords,
   useAppointments,
+  usePatient,
 } from "@/lib/hooks/useQueries";
 import { AppointmentStatus } from "@prisma/client";
 
 export default function ProfilePage() {
   const { user, updateUser, updatePassword } = useAuth();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const patientIdParam = searchParams.get("patientId");
+  const tabParam = searchParams.get("tab");
 
   // State for edit forms
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -53,13 +68,28 @@ export default function ProfilePage() {
     confirmPassword: "",
   });
 
+  // Get viewing mode
+  const isViewingOtherPatient =
+    !!patientIdParam && patientIdParam !== user?.patientProfile?.id;
+  const viewPatientId = isViewingOtherPatient
+    ? patientIdParam
+    : user?.patientProfile?.id;
+
+  // If we're viewing another patient's profile, fetch their data
+  const { data: viewedPatient } = usePatient(viewPatientId || "");
+
   // Fetch medical records for patients
   const { data: medicalRecords = [], isLoading: loadingRecords } =
-    usePatientMedicalRecords(user?.patientProfile?.id || "");
+    usePatientMedicalRecords(viewPatientId || "");
 
-  // Fetch appointments for the current user
+  // Fetch appointments for the current user or viewed patient
+  const appointmentParams = {
+    ...(viewPatientId ? { patientId: viewPatientId } : {}),
+    ...(user?.doctorProfile ? { doctorId: user.doctorProfile.id } : {}),
+  };
+
   const { data: appointments = [], isLoading: loadingAppointments } =
-    useAppointments();
+    useAppointments(appointmentParams);
 
   // Sort appointments by date (most recent first)
   const sortedAppointments = [...appointments].sort(
@@ -73,6 +103,13 @@ export default function ProfilePage() {
   const upcomingAppointments = sortedAppointments.filter(
     (app) => app.status === AppointmentStatus.BOOKED
   );
+
+  // Set the default tab based on URL parameter or user role
+  const defaultTab =
+    tabParam ||
+    (user?.role === "PATIENT" || isViewingOtherPatient
+      ? "medical-records"
+      : "appointments");
 
   const handleUpdateProfile = async () => {
     try {
@@ -132,14 +169,23 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  // Determine which user to display
+  const displayUser =
+    isViewingOtherPatient && viewedPatient
+      ? { ...viewedPatient.user, patientProfile: viewedPatient }
+      : user;
+
+  const initials =
+    `${displayUser.firstName[0]}${displayUser.lastName[0]}`.toUpperCase();
 
   return (
-    <div className="ml-0 lg:ml-64 p-6">
+    <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
         <h1 className="text-2xl font-bold text-[#243352] border-b border-[#0A6EFF]/10 pb-4 flex items-center">
           <UserCircle className="h-6 w-6 mr-2 text-[#0A6EFF]" />
-          Мой профиль
+          {isViewingOtherPatient
+            ? `Профиль пациента: ${displayUser.firstName} ${displayUser.lastName}`
+            : "Мой профиль"}
         </h1>
 
         <div className="grid gap-8 md:grid-cols-3 mt-6">
@@ -154,13 +200,13 @@ export default function ProfilePage() {
                 </Avatar>
                 <div className="text-center">
                   <CardTitle className="text-2xl text-[#243352]">
-                    {user.role === "DOCTOR" ? "Др. " : ""}
-                    {user.firstName} {user.lastName}
+                    {displayUser.role === "DOCTOR" ? "Др. " : ""}
+                    {displayUser.firstName} {displayUser.lastName}
                   </CardTitle>
                   <CardDescription className="text-[#0A6EFF] font-medium">
-                    {user.role === "DOCTOR"
+                    {displayUser.role === "DOCTOR"
                       ? "Врач"
-                      : user.role === "ADMIN"
+                      : displayUser.role === "ADMIN"
                       ? "Администратор"
                       : "Пациент"}
                   </CardDescription>
@@ -171,60 +217,57 @@ export default function ProfilePage() {
               <div className="space-y-5 mt-4">
                 <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
                   <Mail className="h-5 w-5 text-[#0A6EFF]" />
-                  <span className="text-[#243352]">
-                    {user.email}
-                  </span>
+                  <span className="text-[#243352]">{displayUser.email}</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
                   <Phone className="h-5 w-5 text-[#0A6EFF]" />
-                  <span className="text-[#243352]">
-                    {user.phone}
-                  </span>
+                  <span className="text-[#243352]">{displayUser.phone}</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
                   <User className="h-5 w-5 text-[#0A6EFF]" />
                   <span className="text-[#243352]">
-                    В системе с {format(new Date(user.createdAt), "LLLL yyyy", { locale: ru })}
+                    В системе с{" "}
+                    {format(new Date(displayUser.createdAt), "LLLL yyyy", {
+                      locale: ru,
+                    })}
                   </span>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-3 pt-2">
-              <Button
-                onClick={() => {
-                  setProfileFormData({
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    phone: user.phone,
-                  });
-                  setShowProfileDialog(true);
-                }}
-                className="w-full bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white h-11"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Редактировать профиль
-              </Button>
-              <Button
-                onClick={() => setShowPasswordDialog(true)}
-                className="w-full bg-white text-[#243352] border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 h-11"
-                variant="outline"
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                Изменить пароль
-              </Button>
-            </CardFooter>
+            {!isViewingOtherPatient && (
+              <CardFooter className="flex flex-col space-y-3 pt-2">
+                <Button
+                  onClick={() => {
+                    setProfileFormData({
+                      firstName: user.firstName,
+                      lastName: user.lastName,
+                      phone: user.phone,
+                    });
+                    setShowProfileDialog(true);
+                  }}
+                  className="w-full bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white h-11"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Редактировать профиль
+                </Button>
+                <Button
+                  onClick={() => setShowPasswordDialog(true)}
+                  className="w-full bg-white text-[#243352] border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 h-11"
+                  variant="outline"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Изменить пароль
+                </Button>
+              </CardFooter>
+            )}
           </Card>
 
           {/* Main Content */}
           <div className="md:col-span-2">
-            <Tabs
-              defaultValue={
-                user.role === "PATIENT" ? "medical-records" : "appointments"
-              }
-              className="w-full"
-            >
+            <Tabs defaultValue={defaultTab} className="w-full">
               <TabsList className="mb-6 bg-[#0A6EFF]/5 p-1 rounded-lg w-full">
-                {user.role === "PATIENT" && (
+                {/* Only show medical records tab for patients or when viewing a patient */}
+                {(displayUser.role === "PATIENT" || isViewingOtherPatient) && (
                   <TabsTrigger
                     value="medical-records"
                     className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md py-2"
@@ -236,12 +279,12 @@ export default function ProfilePage() {
                   value="appointments"
                   className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md py-2"
                 >
-                  Мои записи
+                  {isViewingOtherPatient ? "Приемы пациента" : "Мои записи"}
                 </TabsTrigger>
               </TabsList>
 
-              {/* Medical Records Tab - Only for Patients */}
-              {user.role === "PATIENT" && (
+              {/* Medical Records Tab - For Patients or when viewing a patient */}
+              {(displayUser.role === "PATIENT" || isViewingOtherPatient) && (
                 <TabsContent value="medical-records">
                   <Card className="bg-white border border-[#0A6EFF]/10 shadow-sm">
                     <CardHeader className="border-b border-[#0A6EFF]/10">
@@ -249,10 +292,14 @@ export default function ProfilePage() {
                         <div>
                           <CardTitle className="text-xl text-[#243352] flex items-center">
                             <FileText className="h-5 w-5 mr-2 text-[#0A6EFF]" />
-                            История болезни
+                            {isViewingOtherPatient
+                              ? "Медицинская карта пациента"
+                              : "История болезни"}
                           </CardTitle>
                           <CardDescription className="text-[#243352]/70">
-                            Полная история ваших посещений и записей врачей
+                            {isViewingOtherPatient
+                              ? `Полная история посещений и записей врачей пациента ${displayUser.firstName} ${displayUser.lastName}`
+                              : "Полная история ваших посещений и записей врачей"}
                           </CardDescription>
                         </div>
                         <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 py-1 px-3 rounded-full">
@@ -304,8 +351,11 @@ export default function ProfilePage() {
                                   Врач:
                                 </span>
                                 <span className="ml-2 text-[#0A6EFF] font-medium">
-                                  Др. {record.appointment.doctor.user.firstName}{" "}
-                                  {record.appointment.doctor.user.lastName}
+                                  Др.{" "}
+                                  {record.appointment.doctor?.user?.firstName ||
+                                    "Неизвестный"}{" "}
+                                  {record.appointment.doctor?.user?.lastName ||
+                                    "Врач"}
                                 </span>
                               </div>
 
@@ -314,7 +364,8 @@ export default function ProfilePage() {
                                   Заключение врача:
                                 </p>
                                 <p className="mt-1 whitespace-pre-wrap text-[#243352] p-4 bg-[#F8FAFC] rounded-md border border-[#0A6EFF]/10">
-                                  {record.doctorNotes}
+                                  {record.doctorNotes ||
+                                    "Заключение отсутствует"}
                                 </p>
                               </div>
                             </div>
@@ -334,10 +385,14 @@ export default function ProfilePage() {
                       <div>
                         <CardTitle className="text-xl text-[#243352] flex items-center">
                           <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
-                          Мои записи
+                          {isViewingOtherPatient
+                            ? "Приемы пациента"
+                            : "Мои записи"}
                         </CardTitle>
                         <CardDescription className="text-[#243352]/70">
-                          Просмотр предстоящих и прошедших записей
+                          {isViewingOtherPatient
+                            ? `Предстоящие и прошедшие записи пациента ${displayUser.firstName} ${displayUser.lastName}`
+                            : "Просмотр предстоящих и прошедших записей"}
                         </CardDescription>
                       </div>
                       <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 py-1 px-3 rounded-full">
@@ -348,9 +403,7 @@ export default function ProfilePage() {
                   <CardContent className="pt-6">
                     {loadingAppointments ? (
                       <div className="flex justify-center py-12 text-[#0A6EFF]">
-                        <div className="animate-pulse">
-                          Загрузка записей...
-                        </div>
+                        <div className="animate-pulse">Загрузка записей...</div>
                       </div>
                     ) : (
                       <div className="space-y-8">
@@ -379,21 +432,30 @@ export default function ProfilePage() {
                                       {appointment.title || "Прием"}
                                     </p>
                                     <p className="text-sm text-[#243352]/70 mt-1">
-                                      {user.role !== "DOCTOR" &&
-                                        appointment.doctor && (
-                                          <>
-                                            Др.{" "}
-                                            {appointment.doctor.user.firstName}{" "}
-                                            {appointment.doctor.user.lastName}
-                                          </>
-                                        )}
-                                      {user.role === "DOCTOR" &&
-                                        appointment.patient && (
-                                          <>
-                                            {appointment.patient.user.firstName}{" "}
-                                            {appointment.patient.user.lastName}
-                                          </>
-                                        )}
+                                      {isViewingOtherPatient ||
+                                      user.role !== "DOCTOR"
+                                        ? appointment.doctor && (
+                                            <>
+                                              Др.{" "}
+                                              {
+                                                appointment.doctor.user
+                                                  .firstName
+                                              }{" "}
+                                              {appointment.doctor.user.lastName}
+                                            </>
+                                          )
+                                        : appointment.patient && (
+                                            <>
+                                              {
+                                                appointment.patient.user
+                                                  .firstName
+                                              }{" "}
+                                              {
+                                                appointment.patient.user
+                                                  .lastName
+                                              }
+                                            </>
+                                          )}
                                     </p>
                                   </div>
                                   <div className="text-right">
@@ -437,55 +499,69 @@ export default function ProfilePage() {
                             </div>
                           ) : (
                             <div className="space-y-4">
-                              {pastAppointments.slice(0, 5).map((appointment) => (
-                                <div
-                                  key={appointment.id}
-                                  className="flex justify-between p-4 border border-[#0A6EFF]/10 rounded-lg hover:shadow-md transition-shadow"
-                                >
-                                  <div>
-                                    <p className="font-medium text-[#243352]">
-                                      {appointment.title || "Прием"}
-                                    </p>
-                                    <p className="text-sm text-[#243352]/70 mt-1">
-                                      {user.role !== "DOCTOR" &&
-                                        appointment.doctor && (
-                                          <>
-                                            Др.{" "}
-                                            {appointment.doctor.user.firstName}{" "}
-                                            {appointment.doctor.user.lastName}
-                                          </>
+                              {pastAppointments
+                                .slice(0, 5)
+                                .map((appointment) => (
+                                  <div
+                                    key={appointment.id}
+                                    className="flex justify-between p-4 border border-[#0A6EFF]/10 rounded-lg hover:shadow-md transition-shadow"
+                                  >
+                                    <div>
+                                      <p className="font-medium text-[#243352]">
+                                        {appointment.title || "Прием"}
+                                      </p>
+                                      <p className="text-sm text-[#243352]/70 mt-1">
+                                        {isViewingOtherPatient ||
+                                        user.role !== "DOCTOR"
+                                          ? appointment.doctor && (
+                                              <>
+                                                Др.{" "}
+                                                {
+                                                  appointment.doctor.user
+                                                    .firstName
+                                                }{" "}
+                                                {
+                                                  appointment.doctor.user
+                                                    .lastName
+                                                }
+                                              </>
+                                            )
+                                          : appointment.patient && (
+                                              <>
+                                                {
+                                                  appointment.patient.user
+                                                    .firstName
+                                                }{" "}
+                                                {
+                                                  appointment.patient.user
+                                                    .lastName
+                                                }
+                                              </>
+                                            )}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-sm font-medium text-[#0A6EFF]">
+                                        {format(
+                                          new Date(appointment.startTime),
+                                          "d MMMM yyyy",
+                                          { locale: ru }
                                         )}
-                                      {user.role === "DOCTOR" &&
-                                        appointment.patient && (
-                                          <>
-                                            {appointment.patient.user.firstName}{" "}
-                                            {appointment.patient.user.lastName}
-                                          </>
+                                      </p>
+                                      <p className="text-sm text-[#243352]/70 mt-1 bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-block">
+                                        {format(
+                                          new Date(appointment.startTime),
+                                          "HH:mm"
+                                        )}{" "}
+                                        -{" "}
+                                        {format(
+                                          new Date(appointment.endTime),
+                                          "HH:mm"
                                         )}
-                                    </p>
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="text-right">
-                                    <p className="text-sm font-medium text-[#0A6EFF]">
-                                      {format(
-                                        new Date(appointment.startTime),
-                                        "d MMMM yyyy",
-                                        { locale: ru }
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-[#243352]/70 mt-1 bg-[#0A6EFF]/5 px-3 py-1 rounded-full inline-block">
-                                      {format(
-                                        new Date(appointment.startTime),
-                                        "HH:mm"
-                                      )}{" "}
-                                      -{" "}
-                                      {format(
-                                        new Date(appointment.endTime),
-                                        "HH:mm"
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
+                                ))}
 
                               {pastAppointments.length > 5 && (
                                 <Button
@@ -493,7 +569,15 @@ export default function ProfilePage() {
                                   variant="outline"
                                   className="w-full mt-4 bg-white text-[#0A6EFF] border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 h-11"
                                 >
-                                  <a href="/calendar">Просмотреть все записи</a>
+                                  <a
+                                    href={`/calendar${
+                                      isViewingOtherPatient
+                                        ? `?patientId=${viewPatientId}`
+                                        : ""
+                                    }`}
+                                  >
+                                    Просмотреть все записи
+                                  </a>
                                 </Button>
                               )}
                             </div>
@@ -523,10 +607,7 @@ export default function ProfilePage() {
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="firstName"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="firstName" className="text-[#243352] font-medium">
                 Имя
               </Label>
               <Input
@@ -543,10 +624,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="lastName"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="lastName" className="text-[#243352] font-medium">
                 Фамилия
               </Label>
               <Input
@@ -563,10 +641,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="phone"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="phone" className="text-[#243352] font-medium">
                 Номер телефона
               </Label>
               <Input
@@ -583,10 +658,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="email" className="text-[#243352] font-medium">
                 Email
               </Label>
               <Input
@@ -595,9 +667,7 @@ export default function ProfilePage() {
                 disabled
                 className="bg-[#F8FAFC] border-2 border-[#0A6EFF]/10"
               />
-              <p className="text-xs text-[#243352]/70">
-                Email нельзя изменить
-              </p>
+              <p className="text-xs text-[#243352]/70">Email нельзя изменить</p>
             </div>
           </div>
 

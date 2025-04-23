@@ -23,7 +23,7 @@ interface NavbarProps {
 export function Navbar({ isOpen, setIsOpen }: NavbarProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-
+    console.log(user)
   // Make sure we have the necessary items in the sidebar
   const navItems = [
     {

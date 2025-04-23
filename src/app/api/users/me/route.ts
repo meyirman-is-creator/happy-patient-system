@@ -1,3 +1,4 @@
+// src/app/api/users/me/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
@@ -66,7 +67,13 @@ export async function GET(request: Request) {
 
     // Remove password from the response
     const { password, ...userWithoutPassword } = user;
-    console.log("User found, returning data");
+    console.log("User found, returning data for user:", userId);
+
+    // Log the response to verify it's correct
+    console.log(
+      "Response data:",
+      JSON.stringify(userWithoutPassword).substring(0, 100) + "..."
+    );
 
     return NextResponse.json(userWithoutPassword);
   } catch (error) {

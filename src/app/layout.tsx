@@ -5,7 +5,7 @@ import { Inter } from "next/font/google";
 import Providers from "./providers";
 import { Header } from "@/components/Header";
 import { Navbar } from "@/components/Navbar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import "./globals.css";
@@ -30,13 +30,50 @@ export default function RootLayout({
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [clientSide, setClientSide] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, token, refreshUserData } = useAuth();
 
+  // This effect ensures client-side rendering
   useEffect(() => {
     setClientSide(true);
   }, []);
+
+  // This effect logs authentication state changes for debugging
+  useEffect(() => {
+    console.log("Auth state changed:", {
+      userId: user?.id || "null",
+      isAuthenticated,
+      loading,
+      token: token ? "exists" : "null",
+      pathname,
+    });
+  }, [user, isAuthenticated, loading, token, pathname]);
+
+  // This effect triggers a manual user data refresh if we have a token but no user
+  useEffect(() => {
+    const fetchUserIfNeeded = async () => {
+      if (isAuthenticated && token && !user && !loading && clientSide) {
+        console.log(
+          "Layout detected token without user - refreshing user data"
+        );
+        await refreshUserData();
+      }
+    };
+
+    fetchUserIfNeeded();
+  }, [isAuthenticated, token, user, loading, refreshUserData, clientSide]);
+
+  // Handle redirection in useEffect, not during render
+  useEffect(() => {
+    const isAuthRoute =
+      pathname?.includes("/login") || pathname?.includes("/register");
+
+    if (!isAuthRoute && !isAuthenticated && !loading && clientSide) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, loading, pathname, router, clientSide]);
 
   if (!clientSide) {
     return (
@@ -66,13 +103,17 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Redirect to login if not authenticated and not on auth route
+  // Show loading for unauthenticated users on protected routes
   if (!isAuthRoute && !isAuthenticated && !loading) {
-    // We're using client-side navigation here
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-      return null;
-    }
+    return (
+      <main className="min-h-screen bg-[#F8FAFC]">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-pulse text-[#0A6EFF] font-medium">
+            Перенаправление на страницу входа...
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (

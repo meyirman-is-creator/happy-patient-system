@@ -76,7 +76,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="ml-0 lg:ml-64 p-6">
+    <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-[#0A6EFF]/10">
           <div>

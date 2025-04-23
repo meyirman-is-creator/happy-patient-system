@@ -1,3 +1,4 @@
+// src/app/api/appointments/[id]/complete/route.ts
 import { NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
 import { z } from "zod";
@@ -55,6 +56,9 @@ export async function PUT(
     // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
       where: { id: params.id },
+      include: {
+        medicalRecord: true,
+      },
     });
 
     if (!appointment) {
@@ -100,14 +104,10 @@ export async function PUT(
     // Create or update medical record
     let medicalRecord;
 
-    const existingRecord = await prisma.medicalRecord.findUnique({
-      where: { appointmentId: params.id },
-    });
-
-    if (existingRecord) {
+    if (appointment.medicalRecord) {
       // Update existing record
       medicalRecord = await prisma.medicalRecord.update({
-        where: { id: existingRecord.id },
+        where: { id: appointment.medicalRecord.id },
         data: {
           doctorNotes: validatedData.doctorNotes,
         },

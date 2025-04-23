@@ -52,6 +52,7 @@ export type MedicalRecord = {
   appointmentId: string;
   patientId: string;
   doctorNotes?: string | null;
+  appointment: Appointment;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -90,7 +91,6 @@ export type AppointmentFormData = {
   title?: string;
   symptoms?: string;
 };
-
 export type MedicalRecordFormData = {
   appointmentId: string;
   doctorNotes: string;

@@ -12,6 +12,8 @@ import {
   FileText,
   Users,
   Search,
+  Phone,
+  Mail,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -62,17 +64,31 @@ function PatientAppointmentItem({
               <p className="text-sm text-[#243352]/70">{patient.user.email}</p>
             </div>
           </div>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
-          >
-            <Link href={`/calendar?patientId=${patient.id}`}>
-              <Calendar className="h-4 w-4 mr-2 text-[#0A6EFF]" />
-              История
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
+            >
+              <Link href={`/calendar?patientId=${patient.id}`}>
+                <Calendar className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                История
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
+            >
+              <Link
+                href={`/profile?patientId=${patient.id}&tab=medical-records`}
+              >
+                <FileText className="h-4 w-4 mr-2 text-[#0A6EFF]" />
+                Медкарта
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -122,6 +138,7 @@ function PatientAppointmentItem({
                   onClick={() => onMarkAttended?.(appointment.id)}
                   className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
                 >
+                  <CheckCircle className="h-4 w-4 mr-2" />
                   Отметить посещение
                 </Button>
                 <Button
@@ -130,6 +147,7 @@ function PatientAppointmentItem({
                   onClick={() => onMarkMissed?.(appointment.id)}
                   className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
                 >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
                   Не явился
                 </Button>
               </div>
@@ -398,7 +416,9 @@ export function PatientList({
                         size="sm"
                         className="flex-1 bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white"
                       >
-                        <Link href={`/calendar?patientId=${patient.id}`}>
+                        <Link
+                          href={`/profile?patientId=${patient.id}&tab=medical-records`}
+                        >
                           <FileText className="h-4 w-4 mr-2" />
                           Медкарта
                         </Link>

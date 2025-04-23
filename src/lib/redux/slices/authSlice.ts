@@ -11,7 +11,7 @@ interface AuthState {
   error: string | null;
 }
 
-// Initialize state with cookies instead of localStorage
+// Initialize state with cookies if in browser environment
 const initialState: AuthState = {
   user: null,
   token: null,
@@ -27,7 +27,7 @@ if (typeof window !== "undefined") {
     if (token) {
       initialState.token = token as string;
       initialState.isAuthenticated = true;
-      console.log("Initialized auth with token from cookies");
+      console.log("Auth slice initialized with token from cookies");
     }
   } catch (error) {
     console.error("Error accessing cookies:", error);
@@ -51,23 +51,28 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.loading = false;
       state.error = null;
-
-      // Token is saved to cookies in the login function
+      console.log(
+        "Login success - user:",
+        action.payload.user?.id || "null",
+        "token:",
+        action.payload.token.substring(0, 10) + "..."
+      );
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
+      console.log("Login failure:", action.payload);
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.loading = false;
-
-      // Token is removed from cookies in the logout function
+      console.log("User logged out");
     },
     updateUserSuccess: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
+      console.log("User updated in redux store:", action.payload.id);
     },
   },
 });

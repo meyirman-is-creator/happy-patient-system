@@ -115,9 +115,11 @@ export const useCompleteAppointment = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["appointment", data.id] });
-      queryClient.invalidateQueries({
-        queryKey: ["medical-records", data.patientId],
-      });
+      if (data.patientId) {
+        queryClient.invalidateQueries({
+          queryKey: ["medical-records", data.patientId],
+        });
+      }
     },
   });
 };
@@ -204,7 +206,6 @@ export const usePatient = (id: string) => {
     enabled: !!id,
   });
 };
-
 export const usePatientMedicalRecords = (id: string) => {
   const dispatch = useAppDispatch();
 
