@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { UserPlus, Search, X, Filter, Clock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { DoctorCard } from "@/components/DoctorCard";
 import { PatientList } from "@/components/PatientList";
@@ -206,14 +206,6 @@ export default function ListingPage() {
     }
   };
 
-  // Default tab based on user role
-  const defaultTab =
-    user?.role === "PATIENT"
-      ? "doctors"
-      : user?.role === "DOCTOR"
-      ? "patients"
-      : "doctors";
-
   return (
     <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
@@ -224,7 +216,7 @@ export default function ListingPage() {
                 ? "Справочник врачей"
                 : user?.role === "DOCTOR"
                 ? "Мои пациенты"
-                : "Управление пользователями"}
+                : "Управление врачами"}
             </h1>
             {user?.role === "PATIENT" && (
               <p className="text-[#243352]/70 mt-1">
@@ -265,62 +257,7 @@ export default function ListingPage() {
           </div>
         </div>
 
-        {user?.role === "ADMIN" ? (
-          <Tabs defaultValue={defaultTab} className="mt-6">
-            <TabsList className="bg-[#0A6EFF]/5 p-1 rounded-lg mb-6">
-              <TabsTrigger
-                value="doctors"
-                className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md px-6 py-2"
-              >
-                Врачи
-              </TabsTrigger>
-              <TabsTrigger
-                value="patients"
-                className="flex-1 data-[state=active]:bg-white data-[state=active]:text-[#0A6EFF] data-[state=active]:shadow-sm rounded-md px-6 py-2"
-              >
-                Пациенты
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="doctors" className="mt-6">
-              {loadingDoctors ? (
-                <div className="flex justify-center py-12 text-[#0A6EFF]">
-                  <div className="animate-pulse">Загрузка данных врачей...</div>
-                </div>
-              ) : filteredDoctors.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10">
-                  <p className="text-[#243352]/70">
-                    Врачи не найдены
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredDoctors.map((doctor) => (
-                    <DoctorCard
-                      key={doctor.id}
-                      doctor={doctor}
-                      isAdmin={user?.role === "ADMIN"}
-                      onEdit={handleEditDoctor}
-                      onDelete={handleDeleteDoctor}
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="patients" className="mt-6">
-              <div className="bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10 p-6">
-                <PatientList
-                  appointments={appointments}
-                  isLoading={loadingAppointments}
-                  onMarkAttended={handleMarkAttended}
-                  onMarkMissed={handleMarkMissed}
-                  onAddNotes={handleAddMedicalRecord}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-        ) : user?.role === "DOCTOR" ? (
+        {user?.role === "DOCTOR" ? (
           <div className="bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10 p-6 mt-6">
             <PatientList
               appointments={appointments}
@@ -345,7 +282,13 @@ export default function ListingPage() {
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredDoctors.map((doctor) => (
-                  <DoctorCard key={doctor.id} doctor={doctor} />
+                  <DoctorCard 
+                    key={doctor.id} 
+                    doctor={doctor} 
+                    isAdmin={user?.role === "ADMIN"}
+                    onEdit={handleEditDoctor}
+                    onDelete={handleDeleteDoctor}
+                  />
                 ))}
               </div>
             )}

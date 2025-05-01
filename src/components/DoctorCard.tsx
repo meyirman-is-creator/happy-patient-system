@@ -117,13 +117,7 @@ export function DoctorCard({
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  Удалить
-                </Button>
+               
               </DialogTrigger>
               <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg">
                 <DialogHeader>
@@ -143,13 +137,7 @@ export function DoctorCard({
                   >
                     Отмена
                   </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => onDelete?.(doctor.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Удалить
-                  </Button>
+                 
                 </DialogFooter>
               </DialogContent>
             </Dialog>
