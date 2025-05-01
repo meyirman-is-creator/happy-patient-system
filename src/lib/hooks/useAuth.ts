@@ -13,6 +13,14 @@ import {
 } from "../redux/slices/authSlice";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 
+// Определяем интерфейс для ошибок аутентификации
+interface AuthError {
+  message: string;
+  code?: string;
+  status?: number;
+  [key: string]: unknown;
+}
+
 export const useAuth = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -77,7 +85,7 @@ export const useAuth = () => {
   }, [token, dispatch]);
 
   // This query fetches the user data once the token is available
-  const { data: currentUser, isLoading: userLoading } = useQuery({
+  const { isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: auth.getMe,
     enabled: !!token && tokenChecked, // Only run when token exists and token check is complete
@@ -145,7 +153,7 @@ export const useAuth = () => {
         router.push("/");
       }
     },
-    onError: (error: any) => {
+    onError: (error: AuthError) => {
       console.error("Login error:", error);
       dispatch(loginFailure(error.message || "Ошибка аутентификации"));
     },

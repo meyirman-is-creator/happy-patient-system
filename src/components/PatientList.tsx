@@ -6,7 +6,6 @@ import { ru } from "date-fns/locale";
 import {
   Calendar,
   CheckCircle,
-  User,
   Clock,
   AlertTriangle,
   FileText,

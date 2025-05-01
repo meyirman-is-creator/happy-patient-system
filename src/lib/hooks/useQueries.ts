@@ -19,22 +19,102 @@ import {
   createMedicalRecordSuccess,
   updateMedicalRecordSuccess,
 } from "../redux/slices/patientSlice";
+import { useEffect } from "react";
+
+// Базовый интерфейс для моделей с общими полями аудита
+interface BaseModel {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: unknown;
+}
+
+// Определяем типы данных
+interface AppointmentParams {
+  doctorId?: string;
+  patientId?: string;
+  date?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+// Определение пользователя (User)
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role: string;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс Doctor
+interface Doctor extends BaseModel {
+  name: string;
+  specialization: string;
+  userId: string;
+  user?: User;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс Patient
+interface Patient extends BaseModel {
+  name: string;
+  userId: string;
+  user?: User;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс Appointment
+interface Appointment extends BaseModel {
+  patientId: string;
+  doctorId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  notes?: string;
+  doctor?: Doctor;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс MedicalRecord
+interface MedicalRecord extends BaseModel {
+  patientId: string;
+  appointmentId?: string;
+  diagnosis: string;
+  treatment: string;
+  date: string;
+  appointment?: Appointment;
+  [key: string]: unknown;
+}
+
+interface AppointmentCompletionData {
+  notes: string;
+  diagnosis?: string;
+  prescription?: string;
+  [key: string]: unknown;
+}
 
 // Appointment Hooks
-export const useAppointments = (params?: any) => {
+export const useAppointments = (params?: AppointmentParams) => {
   const dispatch = useAppDispatch();
-
-  return useQuery({
+  const query = useQuery<Appointment[]>({
     queryKey: ["appointments", params],
     queryFn: () => appointments.getAll(params),
-    onSuccess: (data) => {
-      dispatch(fetchAppointmentsSuccess(data));
-    },
   });
+
+  // Обрабатываем успешное получение данных
+  useEffect(() => {
+    if (query.data) {
+      dispatch(fetchAppointmentsSuccess(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  return query;
 };
 
 export const useAppointment = (id: string) => {
-  return useQuery({
+  return useQuery<Appointment>({
     queryKey: ["appointment", id],
     queryFn: () => appointments.getById(id),
     enabled: !!id,
@@ -46,7 +126,7 @@ export const useCreateAppointment = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: any) => appointments.create(data),
+    mutationFn: (data: Appointment) => appointments.create(data),
     onSuccess: (data) => {
       dispatch(createAppointmentSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
@@ -59,7 +139,7 @@ export const useUpdateAppointment = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) =>
       appointments.update(id, data),
     onSuccess: (data) => {
       dispatch(updateAppointmentSuccess(data));
@@ -110,8 +190,13 @@ export const useCompleteAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      appointments.complete(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: AppointmentCompletionData;
+    }) => appointments.complete(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["appointment", data.id] });
@@ -127,18 +212,23 @@ export const useCompleteAppointment = () => {
 // Doctor Hooks
 export const useDoctors = () => {
   const dispatch = useAppDispatch();
-
-  return useQuery({
+  const query = useQuery<Doctor[]>({
     queryKey: ["doctors"],
     queryFn: () => doctors.getAll(),
-    onSuccess: (data) => {
-      dispatch(fetchDoctorsSuccess(data));
-    },
   });
+
+  // Обрабатываем успешное получение данных
+  useEffect(() => {
+    if (query.data) {
+      dispatch(fetchDoctorsSuccess(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  return query;
 };
 
 export const useDoctor = (id: string) => {
-  return useQuery({
+  return useQuery<Doctor>({
     queryKey: ["doctor", id],
     queryFn: () => doctors.getById(id),
     enabled: !!id,
@@ -150,7 +240,7 @@ export const useCreateDoctor = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: any) => doctors.create(data),
+    mutationFn: (data: Doctor) => doctors.create(data),
     onSuccess: (data) => {
       dispatch(createDoctorSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["doctors"] });
@@ -163,7 +253,7 @@ export const useUpdateDoctor = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Doctor> }) =>
       doctors.update(id, data),
     onSuccess: (data) => {
       dispatch(updateDoctorSuccess(data));
@@ -189,34 +279,45 @@ export const useDeleteDoctor = () => {
 // Patient Hooks
 export const usePatients = () => {
   const dispatch = useAppDispatch();
-
-  return useQuery({
+  const query = useQuery<Patient[]>({
     queryKey: ["patients"],
     queryFn: () => patients.getAll(),
-    onSuccess: (data) => {
-      dispatch(fetchPatientsSuccess(data));
-    },
   });
+
+  // Обрабатываем успешное получение данных
+  useEffect(() => {
+    if (query.data) {
+      dispatch(fetchPatientsSuccess(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  return query;
 };
 
 export const usePatient = (id: string) => {
-  return useQuery({
+  return useQuery<Patient>({
     queryKey: ["patient", id],
     queryFn: () => patients.getById(id),
     enabled: !!id,
   });
 };
+
 export const usePatientMedicalRecords = (id: string) => {
   const dispatch = useAppDispatch();
-
-  return useQuery({
+  const query = useQuery<MedicalRecord[]>({
     queryKey: ["medical-records", id],
     queryFn: () => patients.getMedicalRecords(id),
     enabled: !!id,
-    onSuccess: (data) => {
-      dispatch(fetchMedicalRecordsSuccess(data));
-    },
   });
+
+  // Обрабатываем успешное получение данных
+  useEffect(() => {
+    if (query.data) {
+      dispatch(fetchMedicalRecordsSuccess(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  return query;
 };
 
 // Medical Record Hooks
@@ -225,7 +326,7 @@ export const useCreateMedicalRecord = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: any) => medicalRecords.create(data),
+    mutationFn: (data: MedicalRecord) => medicalRecords.create(data),
     onSuccess: (data) => {
       dispatch(createMedicalRecordSuccess(data));
       queryClient.invalidateQueries({
@@ -243,7 +344,7 @@ export const useUpdateMedicalRecord = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<MedicalRecord> }) =>
       medicalRecords.update(id, data),
     onSuccess: (data) => {
       dispatch(updateMedicalRecordSuccess(data));

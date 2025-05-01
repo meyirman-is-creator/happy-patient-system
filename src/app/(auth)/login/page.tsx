@@ -1,4 +1,3 @@
-// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -10,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { LoginFormData, ErrorResponse } from "@/lib/types.d";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
@@ -41,10 +41,11 @@ export default function LoginPage() {
 
     try {
       await login.mutateAsync(formData);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as ErrorResponse;
       toast({
         title: "Ошибка входа",
-        description: error.message || "Произошла ошибка при входе.",
+        description: err.message || "Произошла ошибка при входе.",
         variant: "destructive",
       });
     }

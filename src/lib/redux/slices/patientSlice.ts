@@ -1,5 +1,52 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Patient, MedicalRecord } from "@/lib/types";
+
+// Определяем базовую модель с полями аудита
+interface BaseModel {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: unknown;
+}
+
+// Определение пользователя (User)
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role: string;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс Patient
+interface Patient extends BaseModel {
+  name: string;
+  userId: string;
+  user?: User;
+  [key: string]: unknown;
+}
+
+// Определяем Appointment (так как есть ссылка из MedicalRecord)
+interface Appointment extends BaseModel {
+  patientId: string;
+  doctorId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  notes?: string;
+  [key: string]: unknown;
+}
+
+// Обновленный интерфейс MedicalRecord
+interface MedicalRecord extends BaseModel {
+  patientId: string;
+  appointmentId?: string;
+  diagnosis: string;
+  treatment: string;
+  date: string;
+  appointment?: Appointment;
+  [key: string]: unknown;
+}
 
 interface PatientState {
   patients: Patient[];

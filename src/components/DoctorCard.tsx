@@ -41,8 +41,7 @@ interface DoctorCardProps {
 export function DoctorCard({
   doctor,
   isAdmin,
-  onEdit,
-  onDelete,
+  onEdit
 }: DoctorCardProps) {
   const { user } = doctor;
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();

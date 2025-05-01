@@ -5,14 +5,12 @@ import { useState, useEffect } from "react";
 import {
   CalendarDays,
   Users,
-  ClipboardCheck,
   UserCheck,
   ActivitySquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   useAppointments,

@@ -2,6 +2,12 @@
 import { jwtVerify, SignJWT } from "jose";
 import prisma from "./prisma";
 
+// Определяем интерфейс для JWT payload
+interface JWTPayload {
+  id: string;
+  [key: string]: unknown; // Для других возможных свойств в payload
+}
+
 // Проверка токена и возврат ID пользователя
 export async function verifyToken(token: string): Promise<string | null> {
   try {
@@ -53,7 +59,7 @@ export async function getUserFromToken(request: Request) {
 }
 
 // Создание нового JWT токена
-export async function createToken(payload: any): Promise<string> {
+export async function createToken(payload: JWTPayload): Promise<string> {
   const JWT_SECRET = process.env.JWT_SECRET || "qwerty";
   const secretKey = new TextEncoder().encode(JWT_SECRET);
 
