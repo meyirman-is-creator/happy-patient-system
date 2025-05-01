@@ -19,9 +19,31 @@ interface NavbarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
+interface UserType {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  createdAt: string;
+  patientProfile?: PatientProfile;
+  doctorProfile?: DoctorProfile;
+}
+interface PatientProfile {
+  id: string;
+  user: UserType;
+}
 
+interface DoctorProfile {
+  id: string;
+  user: UserType;
+}
 export function Navbar({ isOpen, setIsOpen }: NavbarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth() as {
+    user: UserType | null;
+    logout: () => void;
+  };
   const pathname = usePathname();
   const searchParams = useSearchParams();
   

@@ -20,53 +20,29 @@ import {
   updateMedicalRecordSuccess,
 } from "../redux/slices/patientSlice";
 import { useEffect } from "react";
-import { Doctor,Appointment } from "@/lib/types";
-// Базовый интерфейс для моделей с общими полями аудита
-interface BaseModel {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: unknown;
-}
+import {
+  Doctor,
+  Appointment,
+  Patient,
+  MedicalRecord,
+  AppointmentData
+} from "@/lib/types";
 
-// Определяем типы данных
 interface AppointmentParams {
   doctorId?: string;
   patientId?: string;
   date?: string;
   status?: string;
-  [key: string]: unknown;
+  [key: string]: string | undefined;
 }
-
-// Определение пользователя (User)
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  role: string;
-  [key: string]: unknown;
-}
-
-
-// Обновленный интерфейс Patient
-interface Patient extends BaseModel {
-  name: string;
-  userId: string;
-  user?: User;
-  [key: string]: unknown;
-}
-
-// Обновленный интерфейс MedicalRecord
-interface MedicalRecord extends BaseModel {
+export type MedicalRecordData = {
   patientId: string;
-  appointmentId?: string;
+  appointmentId: string;
+  doctorId: string;
   diagnosis: string;
   treatment: string;
-  date: string;
-  appointment?: Appointment;
-  [key: string]: unknown;
-}
-
+  doctorNotes?: string | null;
+};
 interface AppointmentCompletionData {
   notes: string;
   diagnosis?: string;
@@ -74,7 +50,32 @@ interface AppointmentCompletionData {
   [key: string]: unknown;
 }
 
-// Appointment Hooks
+interface CreateDoctorData {
+  user: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    role: "DOCTOR";
+  };
+  specialization: string;
+  education: string;
+}
+
+interface UpdateDoctorData {
+  id: string;
+  data: {
+    specialization?: string;
+    education?: string;
+    user?: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+    };
+  };
+}
+
 export const useAppointments = (params?: AppointmentParams) => {
   const dispatch = useAppDispatch();
   const query = useQuery<Appointment[]>({
@@ -82,7 +83,6 @@ export const useAppointments = (params?: AppointmentParams) => {
     queryFn: () => appointments.getAll(params),
   });
 
-  // Обрабатываем успешное получение данных
   useEffect(() => {
     if (query.data) {
       dispatch(fetchAppointmentsSuccess(query.data));
@@ -105,7 +105,14 @@ export const useCreateAppointment = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: Appointment) => appointments.create(data),
+    mutationFn: (data: AppointmentData) => {
+      const formattedData = {
+        ...data,
+        patientId: data.patientId ?? undefined,
+        duration: data.duration ?? 30  
+      };
+      return appointments.create(formattedData);
+    },
     onSuccess: (data) => {
       dispatch(createAppointmentSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
@@ -118,8 +125,13 @@ export const useUpdateAppointment = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) =>
-      appointments.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) => {
+      const formattedData = {
+        ...data,
+        patientId: data.patientId ?? undefined
+      };
+      return appointments.update(id, formattedData);
+    },
     onSuccess: (data) => {
       dispatch(updateAppointmentSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
@@ -188,7 +200,6 @@ export const useCompleteAppointment = () => {
   });
 };
 
-// Doctor Hooks
 export const useDoctors = () => {
   const dispatch = useAppDispatch();
   const query = useQuery<Doctor[]>({
@@ -196,7 +207,6 @@ export const useDoctors = () => {
     queryFn: () => doctors.getAll(),
   });
 
-  // Обрабатываем успешное получение данных
   useEffect(() => {
     if (query.data) {
       dispatch(fetchDoctorsSuccess(query.data));
@@ -219,7 +229,13 @@ export const useCreateDoctor = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: Doctor) => doctors.create(data),
+    mutationFn: (data: CreateDoctorData) => {
+      const doctorData = {
+        ...data,
+        name: `${data.user.firstName} ${data.user.lastName}`
+      };
+      return doctors.create(doctorData);
+    },
     onSuccess: (data) => {
       dispatch(createDoctorSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["doctors"] });
@@ -232,8 +248,7 @@ export const useUpdateDoctor = () => {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Doctor> }) =>
-      doctors.update(id, data),
+    mutationFn: ({ id, data }: UpdateDoctorData) => doctors.update(id, data),
     onSuccess: (data) => {
       dispatch(updateDoctorSuccess(data));
       queryClient.invalidateQueries({ queryKey: ["doctors"] });
@@ -255,7 +270,6 @@ export const useDeleteDoctor = () => {
   });
 };
 
-// Patient Hooks
 export const usePatients = () => {
   const dispatch = useAppDispatch();
   const query = useQuery<Patient[]>({
@@ -263,10 +277,15 @@ export const usePatients = () => {
     queryFn: () => patients.getAll(),
   });
 
-  // Обрабатываем успешное получение данных
   useEffect(() => {
     if (query.data) {
-      dispatch(fetchPatientsSuccess(query.data));
+      const formattedData = query.data.map(patient => ({
+        ...patient,
+        name: `${patient.user.firstName} ${patient.user.lastName}`,
+        createdAt: patient.createdAt.toISOString(),
+        updatedAt: patient.updatedAt.toISOString()
+      }));
+      dispatch(fetchPatientsSuccess(formattedData));
     }
   }, [query.data, dispatch]);
 
@@ -289,23 +308,32 @@ export const usePatientMedicalRecords = (id: string) => {
     enabled: !!id,
   });
 
-  // Обрабатываем успешное получение данных
   useEffect(() => {
     if (query.data) {
-      dispatch(fetchMedicalRecordsSuccess(query.data));
+      const formattedData = query.data.map(record => ({
+        id: record.id,
+        appointmentId: record.appointmentId,
+        patientId: record.patientId,
+        doctorNotes: record.doctorNotes,
+        diagnosis: record.doctorNotes || '',
+        treatment: record.doctorNotes || '',
+        date: record.createdAt.toISOString(),
+        createdAt: record.createdAt.toISOString(),
+        updatedAt: record.updatedAt.toISOString()
+      }));
+      dispatch(fetchMedicalRecordsSuccess(formattedData));
     }
   }, [query.data, dispatch]);
 
   return query;
 };
 
-// Medical Record Hooks
 export const useCreateMedicalRecord = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (data: MedicalRecord) => medicalRecords.create(data),
+    mutationFn: (data: MedicalRecordData) => medicalRecords.create(data),
     onSuccess: (data) => {
       dispatch(createMedicalRecordSuccess(data));
       queryClient.invalidateQueries({
@@ -317,7 +345,6 @@ export const useCreateMedicalRecord = () => {
     },
   });
 };
-
 export const useUpdateMedicalRecord = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();

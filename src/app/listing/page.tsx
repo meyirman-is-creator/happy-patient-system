@@ -31,6 +31,46 @@ import {
   useCancelAppointment,
 } from "@/lib/hooks/useQueries";
 import { Doctor, Appointment } from "@/lib/types";
+
+// Define the form data type to match what we're collecting in the form
+interface DoctorFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  specialization: string;
+  education: string;
+}
+
+// Interface for creating doctor
+interface CreateDoctorData {
+  user: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    role: "DOCTOR";
+  };
+  specialization: string;
+  education: string;
+}
+
+// Interface for updating doctor
+interface UpdateDoctorData {
+  id: string;
+  data: {
+    specialization?: string;
+    education?: string;
+    user?: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+    };
+  };
+}
+
 export default function ListingPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -48,7 +88,7 @@ export default function ListingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDoctorDialog, setShowDoctorDialog] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
-  const [doctorFormData, setDoctorFormData] = useState({
+  const [doctorFormData, setDoctorFormData] = useState<DoctorFormData>({
     email: "",
     password: "",
     firstName: "",
@@ -96,7 +136,7 @@ export default function ListingPage() {
     } catch {
       toast({
         title: "Ошибка удаления",
-        description:  "Произошла ошибка при удалении врача.",
+        description: "Произошла ошибка при удалении врача.",
         variant: "destructive",
       });
     }
@@ -119,17 +159,21 @@ export default function ListingPage() {
   const handleSubmitDoctorForm = async () => {
     try {
       if (editingDoctor) {
-        // Update existing doctor
-        await updateDoctor.mutateAsync({
+        // Update existing doctor - structure data correctly for UpdateDoctorData
+        const updatePayload: UpdateDoctorData = {
           id: editingDoctor.id,
           data: {
-            firstName: doctorFormData.firstName,
-            lastName: doctorFormData.lastName,
-            phone: doctorFormData.phone,
             specialization: doctorFormData.specialization,
             education: doctorFormData.education,
+            user: {
+              firstName: doctorFormData.firstName,
+              lastName: doctorFormData.lastName,
+              phone: doctorFormData.phone,
+            },
           },
-        });
+        };
+
+        await updateDoctor.mutateAsync(updatePayload);
 
         toast({
           title: "Врач обновлен",
@@ -147,7 +191,21 @@ export default function ListingPage() {
           return;
         }
 
-        await createDoctor.mutateAsync(doctorFormData);
+        // Create proper payload for API
+        const createPayload: CreateDoctorData = {
+          user: {
+            email: doctorFormData.email,
+            password: doctorFormData.password,
+            firstName: doctorFormData.firstName,
+            lastName: doctorFormData.lastName,
+            phone: doctorFormData.phone,
+            role: "DOCTOR",
+          },
+          specialization: doctorFormData.specialization,
+          education: doctorFormData.education,
+        };
+
+        await createDoctor.mutateAsync(createPayload);
 
         toast({
           title: "Врач добавлен",
@@ -175,7 +233,7 @@ export default function ListingPage() {
     } catch {
       toast({
         title: "Ошибка подтверждения",
-        description:"Произошла ошибка.",
+        description: "Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -197,7 +255,6 @@ export default function ListingPage() {
     }
   };
 
-  // Fixed unused parameter error by removing patientId
   const handleAddMedicalRecord = (appointmentId: string) => {
     const appointment = appointments.find((app) => app.id === appointmentId);
     if (appointment) {
@@ -460,7 +517,7 @@ export default function ListingPage() {
             </Button>
             <Button
               onClick={handleSubmitDoctorForm}
-              disabled={createDoctor.isLoading || updateDoctor.isLoading}
+              disabled={createDoctor.isPending || updateDoctor.isPending}
               className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
               {editingDoctor ? "Обновить данные" : "Добавить врача"}

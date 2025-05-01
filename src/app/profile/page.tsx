@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useSearchParams } from "next/navigation";
@@ -48,52 +48,107 @@ import {
 import { AppointmentStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
+interface PatientProfile {
+  id: string;
+  user: UserType;
+}
+
+interface DoctorProfile {
+  id: string;
+  user: UserType;
+}
+
+interface UserType {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  createdAt: string;
+  patientProfile?: PatientProfile;
+  doctorProfile?: DoctorProfile;
+}
+
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
+
+interface PasswordFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export default function ProfilePage() {
-  const { user, updateUser, updatePassword } = useAuth();
+  const { user, updateUser, updatePassword } = useAuth() as {
+    user: UserType | null;
+    updateUser: {
+      mutateAsync: (data: ProfileFormData) => Promise<void>;
+      isPending: boolean;
+    };
+    updatePassword: {
+      mutateAsync: (data: {
+        currentPassword: string;
+        newPassword: string;
+      }) => Promise<void>;
+      isPending: boolean;
+    };
+  };
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientIdParam = searchParams.get("patientId");
   const tabParam = searchParams.get("tab");
 
-  // State for edit forms
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [profileFormData, setProfileFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    phone: user?.phone || "",
+  const [profileFormData, setProfileFormData] = useState<ProfileFormData>({
+    firstName: "",
+    lastName: "",
+    phone: "",
   });
-  const [passwordFormData, setPasswordFormData] = useState({
+  const [passwordFormData, setPasswordFormData] = useState<PasswordFormData>({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  // Get viewing mode
+  useEffect(() => {
+    if (user) {
+      setProfileFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user]);
+
   const isViewingOtherPatient =
     !!patientIdParam && patientIdParam !== user?.patientProfile?.id;
   const viewPatientId = isViewingOtherPatient
     ? patientIdParam
     : user?.patientProfile?.id;
 
-  // If we're viewing another patient's profile, fetch their data
   const { data: viewedPatient } = usePatient(viewPatientId || "");
 
-  // Fetch medical records for patients
   const { data: medicalRecords = [], isLoading: loadingRecords } =
     usePatientMedicalRecords(viewPatientId || "");
 
-  // Fetch appointments for the current user or viewed patient
   const appointmentParams = {
-    ...(viewPatientId ? { patientId: viewPatientId } : {}),
-    ...(user?.doctorProfile ? { doctorId: user.doctorProfile.id } : {}),
+    ...(viewPatientId
+      ? { patientId: viewPatientId }
+      : ({} as Record<string, never>)),
+    ...(user?.doctorProfile
+      ? { doctorId: user.doctorProfile.id }
+      : ({} as Record<string, never>)),
   };
 
   const { data: appointments = [], isLoading: loadingAppointments } =
     useAppointments(appointmentParams);
 
-  // Sort appointments by date (most recent first)
   const sortedAppointments = [...appointments].sort(
     (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
   );
@@ -106,7 +161,6 @@ export default function ProfilePage() {
     (app) => app.status === AppointmentStatus.BOOKED
   );
 
-  // Set the default tab based on URL parameter or user role
   const defaultTab =
     tabParam ||
     (user?.role === "PATIENT" || isViewingOtherPatient
@@ -126,7 +180,7 @@ export default function ProfilePage() {
     } catch {
       toast({
         title: "Ошибка обновления",
-        description:"Не удалось обновить информацию профиля.",
+        description: "Не удалось обновить информацию профиля.",
         variant: "destructive",
       });
     }
@@ -160,7 +214,7 @@ export default function ProfilePage() {
       });
 
       setShowPasswordDialog(false);
-    } catch  {
+    } catch {
       toast({
         title: "Ошибка обновления",
         description: "Не удалось обновить пароль.",
@@ -170,25 +224,43 @@ export default function ProfilePage() {
   };
 
   if (!user) return null;
+  const vremenUser: UserType = {
+    id: "",
+    email: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    role: "",
+    createdAt: "", // Здесь строка
+    patientProfile: undefined,
+    doctorProfile: undefined,
+  };
 
-  // Determine which user to display
-  const displayUser =
+  const displayUser: UserType =
     isViewingOtherPatient && viewedPatient
-      ? { ...viewedPatient.user, patientProfile: viewedPatient }
-      : user;
+      ? {
+          ...viewedPatient.user, // Распаковываем user, чтобы избежать неправильных типов
+          createdAt:
+            viewedPatient.user?.createdAt instanceof Date
+              ? viewedPatient.user.createdAt.toISOString() // Преобразуем Date в строку
+              : viewedPatient.user?.createdAt || "", // В случае, если это уже строка
+        }
+      : vremenUser;
 
   const initials =
-    `${displayUser.firstName[0]}${displayUser.lastName[0]}`.toUpperCase();
+    displayUser.firstName && displayUser.lastName
+      ? `${String(displayUser.firstName).charAt(0)}${String(
+          displayUser.lastName
+        ).charAt(0)}`.toUpperCase()
+      : "";
 
-  // Add this logic to determine when to show the back button
   const showBackButton = isViewingOtherPatient;
 
-  // Add back button handler
   const handleBack = () => {
     if (user?.role === "DOCTOR") {
-      router.push("/listing"); // Doctors go back to patient list
+      router.push("/listing");
     } else {
-      router.push("/"); // Others go to home
+      router.push("/");
     }
   };
 
@@ -214,7 +286,6 @@ export default function ProfilePage() {
         </h1>
 
         <div className="grid gap-8 md:grid-cols-3 mt-6">
-          {/* Profile Card */}
           <Card className="flex flex-col h-full border border-[#0A6EFF]/10 bg-white shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-4 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
               <div className="flex flex-col items-center gap-4">
@@ -287,11 +358,9 @@ export default function ProfilePage() {
             )}
           </Card>
 
-          {/* Main Content */}
           <div className="md:col-span-2">
             <Tabs defaultValue={defaultTab} className="w-full">
               <TabsList className="mb-6 bg-[#0A6EFF]/5 p-1 rounded-lg w-full">
-                {/* Only show medical records tab for patients or when viewing a patient */}
                 {(displayUser.role === "PATIENT" || isViewingOtherPatient) && (
                   <TabsTrigger
                     value="medical-records"
@@ -308,7 +377,6 @@ export default function ProfilePage() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Medical Records Tab - For Patients or when viewing a patient */}
               {(displayUser.role === "PATIENT" || isViewingOtherPatient) && (
                 <TabsContent value="medical-records">
                   <Card className="bg-white border border-[#0A6EFF]/10 shadow-sm">
@@ -357,17 +425,19 @@ export default function ProfilePage() {
                                   <span className="text-[#243352]/70 mr-1">
                                     Дата:
                                   </span>
-                                  {format(
-                                    new Date(record.appointment.startTime),
-                                    "d MMMM yyyy",
-                                    { locale: ru }
-                                  )}
+                                  {record.appointment?.startTime &&
+                                    format(
+                                      new Date(record.appointment.startTime),
+                                      "d MMMM yyyy",
+                                      { locale: ru }
+                                    )}
                                 </div>
                                 <div className="text-sm text-[#243352]/70 bg-[#0A6EFF]/5 px-3 py-1 rounded-full">
-                                  {format(
-                                    new Date(record.appointment.startTime),
-                                    "HH:mm"
-                                  )}
+                                  {record.appointment?.startTime &&
+                                    format(
+                                      new Date(record.appointment.startTime),
+                                      "HH:mm"
+                                    )}
                                 </div>
                               </div>
 
@@ -376,11 +446,15 @@ export default function ProfilePage() {
                                   Врач:
                                 </span>
                                 <span className="ml-2 text-[#0A6EFF] font-medium">
-                                  Др.{" "}
-                                  {record.appointment.doctor?.user?.firstName ||
-                                    "Неизвестный"}{" "}
-                                  {record.appointment.doctor?.user?.lastName ||
-                                    "Врач"}
+                                  {record.appointment?.doctor?.user ? (
+                                    <>
+                                      Др.{" "}
+                                      {record.appointment.doctor.user.firstName}{" "}
+                                      {record.appointment.doctor.user.lastName}
+                                    </>
+                                  ) : (
+                                    "Неизвестный врач"
+                                  )}
                                 </span>
                               </div>
 
@@ -402,7 +476,6 @@ export default function ProfilePage() {
                 </TabsContent>
               )}
 
-              {/* Appointments Tab */}
               <TabsContent value="appointments">
                 <Card className="bg-white border border-[#0A6EFF]/10 shadow-sm">
                   <CardHeader className="border-b border-[#0A6EFF]/10">
@@ -432,7 +505,6 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <div className="space-y-8">
-                        {/* Upcoming Appointments */}
                         <div>
                           <h3 className="font-medium mb-4 flex items-center text-[#243352] pb-2 border-b border-[#0A6EFF]/10">
                             <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
@@ -509,7 +581,6 @@ export default function ProfilePage() {
                           )}
                         </div>
 
-                        {/* Past Appointments */}
                         <div>
                           <h3 className="font-medium mb-4 flex items-center text-[#243352] pb-2 border-b border-[#0A6EFF]/10">
                             <Calendar className="h-5 w-5 mr-2 text-[#0A6EFF]" />
@@ -618,7 +689,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Profile Dialog */}
       <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
         <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
@@ -706,16 +776,15 @@ export default function ProfilePage() {
             </Button>
             <Button
               onClick={handleUpdateProfile}
-              disabled={updateUser.isLoading}
+              disabled={updateUser.isPending}
               className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {updateUser.isLoading ? "Сохранение..." : "Сохранить изменения"}
+              {updateUser.isPending ? "Сохранение..." : "Сохранить изменения"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Change Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg max-w-md">
           <DialogHeader>
@@ -802,10 +871,10 @@ export default function ProfilePage() {
             </Button>
             <Button
               onClick={handleUpdatePassword}
-              disabled={updatePassword.isLoading}
+              disabled={updatePassword.isPending}
               className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {updatePassword.isLoading ? "Обновление..." : "Обновить пароль"}
+              {updatePassword.isPending ? "Обновление..." : "Обновить пароль"}
             </Button>
           </DialogFooter>
         </DialogContent>

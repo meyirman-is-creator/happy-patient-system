@@ -55,18 +55,18 @@ export function MedicalRecordForm({
       });
       return;
     }
-
+  
     try {
       await completeAppointment.mutateAsync({
         id: appointment.id,
-        data: { doctorNotes },
+        data: { notes: doctorNotes },  // Исправлено здесь
       });
-
+  
       toast({
         title: "Медицинская запись сохранена",
         description: "Медицинская запись была успешно сохранена.",
       });
-
+  
       onClose();
     } catch {
       toast({
@@ -171,10 +171,10 @@ export function MedicalRecordForm({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={completeAppointment.isLoading}
+            disabled={completeAppointment.isPending}
             className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
           >
-            {completeAppointment.isLoading
+            {completeAppointment.isPending
               ? "Сохранение..."
               : "Сохранить запись"}
           </Button>

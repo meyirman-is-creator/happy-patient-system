@@ -7,8 +7,8 @@ export type User = {
   lastName: string;
   phone: string;
   role: Role;
-  createdAt: Date; // Use Date instead of string, it's safer
-  updatedAt: Date; // Use Date instead of string, it's safer
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type Doctor = {
@@ -24,7 +24,7 @@ export type Doctor = {
 export type Patient = {
   id: string;
   userId: string;
-  dateOfBirth?: Date | null; // Changed to Date | null for consistency
+  dateOfBirth?: Date | null;
   gender?: string | null;
   user: User;
   createdAt: Date;
@@ -35,8 +35,8 @@ export type Appointment = {
   id: string;
   doctorId: string;
   patientId?: string | null;
-  startTime: Date; // Using Date for better handling
-  endTime: Date; // Using Date for better handling
+  startTime: Date;
+  endTime: Date;
   title?: string | null;
   symptoms?: string | null;
   status: AppointmentStatus;
@@ -58,14 +58,14 @@ export type MedicalRecord = {
 };
 
 export type TimeSlot = {
-  startTime: Date; // Using Date for better handling
-  endTime: Date; // Using Date for better handling
+  startTime: Date;
+  endTime: Date;
   status: AppointmentStatus;
   appointmentId?: string;
 };
 
 export type CalendarDay = {
-  date: Date; // Using Date for better handling
+  date: Date;
   slots: TimeSlot[];
 };
 
@@ -86,7 +86,7 @@ export type LoginFormData = {
 export type AppointmentFormData = {
   doctorId: string;
   patientId?: string;
-  startTime: Date; // Using Date for better handling
+  startTime: Date;
   duration: number;
   title?: string;
   symptoms?: string;
@@ -95,4 +95,26 @@ export type AppointmentFormData = {
 export type MedicalRecordFormData = {
   appointmentId: string;
   doctorNotes: string;
+};
+
+export type CreateAppointmentRequest = {
+  doctorId: string;
+  patientId?: string | null;
+  date: string;
+  time: string;
+  reason: string;
+  duration?: number;
+  title?: string | null;
+  status?: AppointmentStatus;
+};
+
+export type AppointmentData = {
+  doctorId: string;
+  patientId?: string | undefined;
+  date: string;
+  time: string;
+  reason: string;
+  duration?: number;  // Сделать duration опциональным
+  title?: string | null;
+  status?: AppointmentStatus;
 };

@@ -91,7 +91,13 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
   query.startDate = format(startDate, "yyyy-MM-dd");
   query.endDate = format(addDays(startDate, 7), "yyyy-MM-dd");
 
-  const { data: appointments = [], isLoading } = useAppointments(query);
+  const appointmentParams: Record<string, string> = {};
+  if (query.doctorId) appointmentParams.doctorId = query.doctorId;
+  if (query.patientId) appointmentParams.patientId = query.patientId;
+  if (query.startDate) appointmentParams.startDate = query.startDate;
+  if (query.endDate) appointmentParams.endDate = query.endDate;
+
+  const { data: appointments = [], isLoading } = useAppointments(appointmentParams);
   const createAppointment = useCreateAppointment();
   const deleteAppointment = useDeleteAppointment();
 
@@ -136,7 +142,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     });
     setShowBookingDialog(true);
   };
-
   const handleSubmitBooking = async () => {
     try {
       if (!formData.startTime || !formData.duration) {
@@ -147,20 +152,31 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         });
         return;
       }
-
+  
+      const appointmentDoctorId = formData.doctorId || doctorId;
+      if (!appointmentDoctorId) {
+        toast({
+          title: "Ошибка",
+          description: "ID врача не указан.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
       await createAppointment.mutateAsync({
-        doctorId: formData.doctorId || doctorId,
-        startTime: formData.startTime.toISOString(),
+        doctorId: appointmentDoctorId,
+        date: format(formData.startTime, 'yyyy-MM-dd'),
+        time: format(formData.startTime, 'HH:mm'),
+        reason: formData.symptoms || formData.title || 'Прием',
         duration: formData.duration,
         title: formData.title,
-        symptoms: formData.symptoms,
       });
-
+  
       toast({
         title: "Запись создана",
         description: "Ваша запись успешно создана.",
       });
-
+  
       setShowBookingDialog(false);
     } catch (error) {
       const err = error as ErrorResponse;
@@ -194,6 +210,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     }
   };
 
+  // Остальной код остается без изменений...
   const getSlotAppointment = (day: Date, time: Date) => {
     return appointments.find((appointment) => {
       const appointmentDate = new Date(appointment.startTime);
@@ -453,10 +470,10 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
             </Button>
             <Button
               onClick={handleSubmitBooking}
-              disabled={createAppointment.isLoading}
+              disabled={createAppointment.isPending}
               className="bg-[#0A6EFF] hover:bg-[#0A6EFF]/90 text-white disabled:opacity-70"
             >
-              {createAppointment.isLoading ? "Создание..." : "Записаться"}
+              {createAppointment.isPending ? "Создание..." : "Записаться"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -532,10 +549,10 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
                   <Button
                     variant="destructive"
                     onClick={handleCancelAppointment}
-                    disabled={deleteAppointment.isLoading}
+                    disabled={deleteAppointment.isPending}
                     className="bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-70"
                   >
-                    {deleteAppointment.isLoading
+                    {deleteAppointment.isPending
                       ? "Отмена..."
                       : "Отменить запись"}
                   </Button>

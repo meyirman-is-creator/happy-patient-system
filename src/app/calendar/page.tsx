@@ -16,32 +16,27 @@ import { useDoctors, usePatient } from "@/lib/hooks/useQueries";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
   Stethoscope,
-  Users,
+  User as UserIcon,
   Calendar as CalendarIcon,
   ChevronLeft,
 } from "lucide-react";
 
 interface DoctorProfile {
   id: string;
-  specialization?: string;
-  user: {
-    firstName: string;
-    lastName: string;
-  };
+  specialization?: string | null;
 }
 
 interface PatientProfile {
   id: string;
-  dateOfBirth?: string;
-  gender?: string;
-  user: {
-    firstName: string;
-    lastName: string;
-  };
+  dateOfBirth?: Date | null;
+  gender?: string | null;
 }
 
-interface User {
-  role?: "DOCTOR" | "PATIENT" | "ADMIN";
+interface UserWithProfiles {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
   doctorProfile?: DoctorProfile;
   patientProfile?: PatientProfile;
 }
@@ -53,11 +48,13 @@ export default function CalendarPage() {
   const patientId = searchParams.get("patientId");
   const returnTo = searchParams.get("returnTo");
 
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: UserWithProfiles | null };
   const { data: doctors = [] } = useDoctors();
   const { data: patient } = usePatient(patientId || "");
 
-  const [selectedDoctorId, setSelectedDoctorId] = useState(doctorId || "");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(
+    doctorId || ""
+  );
 
   // Update selectedDoctorId when doctorId in URL changes
   useEffect(() => {
@@ -108,8 +105,10 @@ export default function CalendarPage() {
 
   const showBackButton =
     returnTo ||
-    (patientId && patientId !== user?.patientProfile?.id) ||
-    (doctorId && doctorId !== user?.doctorProfile?.id);
+    (patientId &&
+      user?.patientProfile &&
+      patientId !== user.patientProfile.id) ||
+    (doctorId && user?.doctorProfile && doctorId !== user.doctorProfile.id);
 
   return (
     <div className="ml-[20px] mt-[20px]">
@@ -139,11 +138,21 @@ export default function CalendarPage() {
                 {selectedDoctor.specialization}
               </p>
             )}
-            {patient && patient.dateOfBirth && (
+            {patient && (
               <p className="mt-1 text-[#0A6EFF]">
-                <Users className="h-4 w-4 inline mr-1" />
-                {patient.gender || "Не указан"},{" "}
-                {new Date(patient.dateOfBirth).toLocaleDateString("ru-RU")}
+                <UserIcon className="h-4 w-4 inline mr-1" />
+                {patient.dateOfBirth ? (
+                  <>
+                    {", "}
+                    {typeof patient.dateOfBirth === "string"
+                      ? new Date(patient.dateOfBirth).toLocaleDateString(
+                          "ru-RU"
+                        )
+                      : patient.dateOfBirth instanceof Date
+                      ? patient.dateOfBirth.toLocaleDateString("ru-RU")
+                      : "Дата не указана"}
+                  </>
+                ) : null}
               </p>
             )}
           </div>
