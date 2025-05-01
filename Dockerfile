@@ -1,6 +1,12 @@
 # Используем Bun образ
 FROM oven/bun:1 AS base
 
+# Установка OpenSSL для Prisma
+RUN apt-get update -y && \
+    apt-get install -y openssl ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Копируем файлы зависимостей
@@ -18,7 +24,13 @@ COPY . .
 RUN bun run build
 
 # Стадия production
-FROM oven/bun:1 AS production
+FROM oven/bun:1-slim AS production
+
+# Установка OpenSSL для Prisma (runtime)
+RUN apt-get update -y && \
+    apt-get install -y openssl ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
