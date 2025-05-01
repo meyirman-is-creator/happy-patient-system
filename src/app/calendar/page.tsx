@@ -14,7 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/Calendar";
 import { useDoctors, usePatient } from "@/lib/hooks/useQueries";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Stethoscope, Users, Calendar as CalendarIcon, ChevronLeft } from "lucide-react";
+import {
+  Stethoscope,
+  Users,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+} from "lucide-react";
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -76,22 +81,27 @@ export default function CalendarPage() {
       return "Календарь приемов";
     }
   };
-
+  const showBackButton =
+    returnTo ||
+    (patientId && patientId !== user?.patientProfile?.id) ||
+    (doctorId && doctorId !== user?.doctorProfile?.id);
   return (
     <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#0A6EFF]/10 pb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleBack}
-                className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5"
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Назад
-              </Button>
+              {showBackButton && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBack}
+                  className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Назад
+                </Button>
+              )}
             </div>
             <h1 className="text-2xl font-bold text-[#243352] flex items-center">
               <CalendarIcon className="h-6 w-6 mr-2 text-[#0A6EFF]" />
@@ -106,7 +116,8 @@ export default function CalendarPage() {
             {patient && patient.dateOfBirth && (
               <p className="mt-1 text-[#0A6EFF]">
                 <Users className="h-4 w-4 inline mr-1" />
-                {patient.gender || "Не указан"}, {new Date(patient.dateOfBirth).toLocaleDateString('ru-RU')}
+                {patient.gender || "Не указан"},{" "}
+                {new Date(patient.dateOfBirth).toLocaleDateString("ru-RU")}
               </p>
             )}
           </div>

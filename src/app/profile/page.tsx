@@ -14,6 +14,7 @@ import {
   UserCircle,
   Edit,
   ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,10 +47,12 @@ import {
   usePatient,
 } from "@/lib/hooks/useQueries";
 import { AppointmentStatus } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { user, updateUser, updatePassword } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const patientIdParam = searchParams.get("patientId");
   const tabParam = searchParams.get("tab");
@@ -178,9 +181,32 @@ export default function ProfilePage() {
   const initials =
     `${displayUser.firstName[0]}${displayUser.lastName[0]}`.toUpperCase();
 
+  // Add this logic to determine when to show the back button
+  const showBackButton = isViewingOtherPatient;
+
+  // Add back button handler
+  const handleBack = () => {
+    if (user?.role === "DOCTOR") {
+      router.push("/listing"); // Doctors go back to patient list
+    } else {
+      router.push("/"); // Others go to home
+    }
+  };
+
   return (
     <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
+        {showBackButton && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 mb-4"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Назад
+          </Button>
+        )}
         <h1 className="text-2xl font-bold text-[#243352] border-b border-[#0A6EFF]/10 pb-4 flex items-center">
           <UserCircle className="h-6 w-6 mr-2 text-[#0A6EFF]" />
           {isViewingOtherPatient

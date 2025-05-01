@@ -3,7 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   Users,
@@ -23,7 +23,22 @@ interface NavbarProps {
 export function Navbar({ isOpen, setIsOpen }: NavbarProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-    console.log(user)
+  const searchParams = useSearchParams();
+  
+  // Get parameters from URL
+  const doctorId = searchParams.get("doctorId");
+  const patientId = searchParams.get("patientId");
+  
+  // Check if viewing someone else's data
+  const isViewingOtherCalendar = 
+    (pathname === "/calendar") && 
+    ((doctorId && doctorId !== user?.doctorProfile?.id) || 
+     (patientId && patientId !== user?.patientProfile?.id));
+  
+  const isViewingOtherProfile = 
+    (pathname === "/profile") && 
+    (patientId && patientId !== user?.patientProfile?.id);
+
   // Make sure we have the necessary items in the sidebar
   const navItems = [
     {
@@ -31,12 +46,14 @@ export function Navbar({ isOpen, setIsOpen }: NavbarProps) {
       label: "Главная",
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
       roles: ["PATIENT", "DOCTOR", "ADMIN"],
+      show: true, // Always show Home/Dashboard
     },
     {
       href: "/calendar",
       label: "Календарь",
       icon: <CalendarDays className="h-5 w-5 mr-2" />,
       roles: ["PATIENT", "DOCTOR", "ADMIN"],
+      show: !isViewingOtherCalendar, // Hide when viewing someone else's calendar
     },
     {
       href: "/listing",
@@ -48,17 +65,20 @@ export function Navbar({ isOpen, setIsOpen }: NavbarProps) {
           : "Управление пользователями",
       icon: <Users className="h-5 w-5 mr-2" />,
       roles: ["PATIENT", "DOCTOR", "ADMIN"],
+      show: true, // Always show Listing
     },
     {
       href: "/profile",
       label: "Профиль",
       icon: <UserCircle className="h-5 w-5 mr-2" />,
       roles: ["PATIENT", "DOCTOR", "ADMIN"],
+      show: !isViewingOtherProfile, // Hide when viewing someone else's profile
     },
   ];
 
+  // Filter navItems by user role and show flag
   const filteredNavItems = user?.role
-    ? navItems.filter((item) => item.roles.includes(user.role))
+    ? navItems.filter((item) => item.roles.includes(user.role) && item.show)
     : [];
 
   return (
