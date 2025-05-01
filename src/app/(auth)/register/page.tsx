@@ -25,13 +25,6 @@ type FormData = {
   phone: string;
 };
 
-// Определяем тип RegisterData, который ожидает API
-type RegisterData = {
-  email: string;
-  password: string;
-  name: string;
-  phone: string;
-};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -96,11 +89,13 @@ export default function RegisterPage() {
 
     try {
       // Преобразуем formData в RegisterData
-      const registerData: RegisterData = {
+      const registerData: FormData = {
         email: formData.email,
         password: formData.password,
-        name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName:formData.lastName,
         phone: formData.phone,
+        confirmPassword:formData.confirmPassword
       };
 
       await register.mutateAsync(registerData);

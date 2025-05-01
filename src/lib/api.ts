@@ -1,12 +1,14 @@
 import { getCookie } from "cookies-next";
 
 // Определение интерфейсов для всех типов данных
-interface RegisterData {
+type FormData = {
   email: string;
   password: string;
-  name: string;
-  role?: string;
-}
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+};
 
 interface LoginData {
   email: string;
@@ -123,7 +125,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // Auth API
 export const auth = {
-  register: (data: RegisterData) =>
+  register: (data: FormData) =>
     fetchWithAuth("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
