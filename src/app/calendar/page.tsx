@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -10,18 +10,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/Calendar";
-import { useDoctors } from "@/lib/hooks/useQueries";
+import { useDoctors, usePatient } from "@/lib/hooks/useQueries";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Stethoscope, Users, Calendar as CalendarIcon } from "lucide-react";
+import { Stethoscope, Users, Calendar as CalendarIcon, ChevronLeft } from "lucide-react";
 
 export default function CalendarPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const doctorId = searchParams.get("doctorId");
   const patientId = searchParams.get("patientId");
+  const returnTo = searchParams.get("returnTo");
 
   const { user } = useAuth();
   const { data: doctors = [], isLoading } = useDoctors();
+  // Fetch patient data if viewing a patient's calendar
+  const { data: patient } = usePatient(patientId || "");
 
   const [selectedDoctorId, setSelectedDoctorId] = useState(doctorId || "");
 
@@ -48,23 +53,60 @@ export default function CalendarPage() {
     (d) => d.id === (selectedDoctorId || doctorId)
   );
 
+  // Handle back button click
+  const handleBack = () => {
+    if (returnTo) {
+      router.push(returnTo);
+    } else if (patientId) {
+      router.push(`/profile?patientId=${patientId}&tab=appointments`);
+    } else if (doctorId && user?.role === "ADMIN") {
+      router.push("/listing");
+    } else {
+      router.push("/");
+    }
+  };
+
+  // Determine the title based on context
+  const getContextTitle = () => {
+    if (patientId && patient) {
+      return `Записи пациента: ${patient.user.firstName} ${patient.user.lastName}`;
+    } else if (selectedDoctor) {
+      return `Расписание: ${selectedDoctor.user.firstName} ${selectedDoctor.user.lastName}`;
+    } else {
+      return "Календарь приемов";
+    }
+  };
+
   return (
     <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#0A6EFF]/10 pb-6">
           <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleBack}
+                className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Назад
+              </Button>
+            </div>
             <h1 className="text-2xl font-bold text-[#243352] flex items-center">
               <CalendarIcon className="h-6 w-6 mr-2 text-[#0A6EFF]" />
-              {patientId
-                ? "Записи пациента"
-                : selectedDoctor
-                ? `Расписание: ${selectedDoctor?.user.firstName} ${selectedDoctor?.user.lastName}`
-                : "Календарь приемов"}
+              {getContextTitle()}
             </h1>
             {selectedDoctor && selectedDoctor.specialization && (
               <p className="mt-1 text-[#0A6EFF]">
                 <Stethoscope className="h-4 w-4 inline mr-1" />
                 {selectedDoctor.specialization}
+              </p>
+            )}
+            {patient && patient.dateOfBirth && (
+              <p className="mt-1 text-[#0A6EFF]">
+                <Users className="h-4 w-4 inline mr-1" />
+                {patient.gender || "Не указан"}, {new Date(patient.dateOfBirth).toLocaleDateString('ru-RU')}
               </p>
             )}
           </div>
