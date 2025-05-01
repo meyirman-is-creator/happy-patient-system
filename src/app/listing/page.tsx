@@ -31,7 +31,6 @@ import {
   useCancelAppointment,
 } from "@/lib/hooks/useQueries";
 import { Doctor, Appointment } from "@/lib/types";
-
 export default function ListingPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -94,10 +93,10 @@ export default function ListingPage() {
         title: "Врач удален",
         description: "Врач был успешно удален из системы.",
       });
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка удаления",
-        description: error.message || "Произошла ошибка при удалении врача.",
+        description:  "Произошла ошибка при удалении врача.",
         variant: "destructive",
       });
     }
@@ -141,7 +140,8 @@ export default function ListingPage() {
         if (!doctorFormData.password) {
           toast({
             title: "Отсутствует пароль",
-            description: "Пожалуйста, укажите пароль для нового аккаунта врача.",
+            description:
+              "Пожалуйста, укажите пароль для нового аккаунта врача.",
             variant: "destructive",
           });
           return;
@@ -156,10 +156,10 @@ export default function ListingPage() {
       }
 
       setShowDoctorDialog(false);
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка операции",
-        description: error.message || "Произошла ошибка.",
+        description: "Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -172,10 +172,10 @@ export default function ListingPage() {
         title: "Прием подтвержден",
         description: "Отмечено присутствие пациента.",
       });
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка подтверждения",
-        description: error.message || "Произошла ошибка.",
+        description:"Произошла ошибка.",
         variant: "destructive",
       });
     }
@@ -188,16 +188,17 @@ export default function ListingPage() {
         title: "Прием отменен",
         description: "Отмечено отсутствие пациента.",
       });
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка отметки",
-        description: error.message || "Произошла ошибка.",
+        description: "Произошла ошибка.",
         variant: "destructive",
       });
     }
   };
 
-  const handleAddMedicalRecord = (appointmentId: string, patientId: string) => {
+  // Fixed unused parameter error by removing patientId
+  const handleAddMedicalRecord = (appointmentId: string) => {
     const appointment = appointments.find((app) => app.id === appointmentId);
     if (appointment) {
       setSelectedAppointment(appointment);
@@ -219,7 +220,8 @@ export default function ListingPage() {
             </h1>
             {user?.role === "PATIENT" && (
               <p className="text-[#243352]/70 mt-1">
-                Всего врачей: <span className="font-medium">{doctors.length}</span>
+                Всего врачей:{" "}
+                <span className="font-medium">{doctors.length}</span>
               </p>
             )}
           </div>
@@ -274,16 +276,14 @@ export default function ListingPage() {
               </div>
             ) : filteredDoctors.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-[#0A6EFF]/10">
-                <p className="text-[#243352]/70">
-                  Врачи не найдены
-                </p>
+                <p className="text-[#243352]/70">Врачи не найдены</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredDoctors.map((doctor) => (
-                  <DoctorCard 
-                    key={doctor.id} 
-                    doctor={doctor} 
+                  <DoctorCard
+                    key={doctor.id}
+                    doctor={doctor}
                     isAdmin={user?.role === "ADMIN"}
                     onEdit={handleEditDoctor}
                     onDelete={handleDeleteDoctor}
@@ -353,10 +353,7 @@ export default function ListingPage() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="email" className="text-[#243352] font-medium">
                 Email
               </Label>
               <Input
@@ -398,10 +395,7 @@ export default function ListingPage() {
             )}
 
             <div className="space-y-2">
-              <Label
-                htmlFor="phone"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="phone" className="text-[#243352] font-medium">
                 Телефон
               </Label>
               <Input
@@ -438,10 +432,7 @@ export default function ListingPage() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="education"
-                className="text-[#243352] font-medium"
-              >
+              <Label htmlFor="education" className="text-[#243352] font-medium">
                 Образование и квалификация
               </Label>
               <Textarea

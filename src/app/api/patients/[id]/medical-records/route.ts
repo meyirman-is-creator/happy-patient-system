@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/jwt";
 
+// Определяем правильный тип для параметров маршрута
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 // GET patient's medical records
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: RouteParams) {
   try {
+    const params = await props.params;
     const user = await getUserFromToken(request);
 
     if (!user) {

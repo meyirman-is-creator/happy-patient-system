@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     });
 
     // Return success but exclude password
-    const { password, ...userWithoutPassword } = newUser;
+    const { ...userWithoutPassword } = newUser;
 
     return NextResponse.json(
       {

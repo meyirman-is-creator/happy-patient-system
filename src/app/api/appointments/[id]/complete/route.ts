@@ -1,4 +1,3 @@
-// src/app/api/appointments/[id]/complete/route.ts
 import { NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
 import { z } from "zod";
@@ -23,7 +22,8 @@ const getUserFromToken = async (request: Request) => {
     });
 
     return user;
-  } catch {
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -34,11 +34,19 @@ const completeAppointmentSchema = z.object({
 });
 
 // PUT complete appointment and add medical record
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request) {
   try {
+    // Extract appointment ID from the URL
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "Appointment ID is required" },
+        { status: 400 }
+      );
+    }
+
     const user = await getUserFromToken(request);
 
     if (!user) {
@@ -55,7 +63,7 @@ export async function PUT(
 
     // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         medicalRecord: true,
       },
@@ -102,11 +110,9 @@ export async function PUT(
     const validatedData = completeAppointmentSchema.parse(body);
 
     // Create or update medical record
-    let medicalRecord;
-
     if (appointment.medicalRecord) {
       // Update existing record
-      medicalRecord = await prisma.medicalRecord.update({
+      await prisma.medicalRecord.update({
         where: { id: appointment.medicalRecord.id },
         data: {
           doctorNotes: validatedData.doctorNotes,
@@ -114,9 +120,9 @@ export async function PUT(
       });
     } else {
       // Create new record
-      medicalRecord = await prisma.medicalRecord.create({
+      await prisma.medicalRecord.create({
         data: {
-          appointmentId: params.id,
+          appointmentId: id,
           patientId: appointment.patientId,
           doctorNotes: validatedData.doctorNotes,
         },
@@ -125,7 +131,7 @@ export async function PUT(
 
     // Update appointment status
     const updatedAppointment = await prisma.appointment.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status: "OCCUPIED",
       },

@@ -7,8 +7,8 @@ export type User = {
   lastName: string;
   phone: string;
   role: Role;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date; // Use Date instead of string, it's safer
+  updatedAt: Date; // Use Date instead of string, it's safer
 };
 
 export type Doctor = {
@@ -24,7 +24,7 @@ export type Doctor = {
 export type Patient = {
   id: string;
   userId: string;
-  dateOfBirth?: Date | null;
+  dateOfBirth?: Date | null; // Changed to Date | null for consistency
   gender?: string | null;
   user: User;
   createdAt: Date;
@@ -35,8 +35,8 @@ export type Appointment = {
   id: string;
   doctorId: string;
   patientId?: string | null;
-  startTime: Date;
-  endTime: Date;
+  startTime: Date; // Using Date for better handling
+  endTime: Date; // Using Date for better handling
   title?: string | null;
   symptoms?: string | null;
   status: AppointmentStatus;
@@ -58,14 +58,14 @@ export type MedicalRecord = {
 };
 
 export type TimeSlot = {
-  startTime: Date;
-  endTime: Date;
+  startTime: Date; // Using Date for better handling
+  endTime: Date; // Using Date for better handling
   status: AppointmentStatus;
   appointmentId?: string;
 };
 
 export type CalendarDay = {
-  date: Date;
+  date: Date; // Using Date for better handling
   slots: TimeSlot[];
 };
 
@@ -86,11 +86,12 @@ export type LoginFormData = {
 export type AppointmentFormData = {
   doctorId: string;
   patientId?: string;
-  startTime: Date;
+  startTime: Date; // Using Date for better handling
   duration: number;
   title?: string;
   symptoms?: string;
 };
+
 export type MedicalRecordFormData = {
   appointmentId: string;
   doctorNotes: string;

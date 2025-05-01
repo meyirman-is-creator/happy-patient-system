@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { addMinutes } from "date-fns";
 
-// Helper to get user from token
-const getUserFromToken = async (request: Request) => {
+// Обновлено: изменен тип request на NextRequest
+const getUserFromToken = async (request: NextRequest) => {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
@@ -23,17 +23,23 @@ const getUserFromToken = async (request: Request) => {
     });
 
     return user;
-  } catch {
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
-// GET specific appointment
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Обновлено: исправлен тип Props - заменен provider на id
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+// Обновлена сигнатура GET метода
+export async function GET(request: NextRequest, props: RouteParams) {
   try {
+    const params = await props.params;
     const user = await getUserFromToken(request);
 
     if (!user) {
@@ -78,7 +84,6 @@ export async function GET(
       );
     }
 
-    // Check permissions based on role
     if (user.role === "PATIENT") {
       const patientProfile = await prisma.patient.findUnique({
         where: { userId: user.id },
@@ -102,7 +107,6 @@ export async function GET(
         );
       }
     }
-    // Admin can view any appointment
 
     return NextResponse.json(appointment);
   } catch (error) {
@@ -114,7 +118,6 @@ export async function GET(
   }
 }
 
-// Update appointment schema
 const updateAppointmentSchema = z.object({
   startTime: z
     .string()
@@ -126,19 +129,16 @@ const updateAppointmentSchema = z.object({
   status: z.enum(["FREE", "BOOKED", "OCCUPIED"]).optional(),
 });
 
-// PUT update appointment
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Обновлена сигнатура PUT метода
+export async function PUT(request: NextRequest, props: RouteParams) {
   try {
+    const params = await props.params;
     const user = await getUserFromToken(request);
 
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
       where: { id: params.id },
     });
@@ -150,7 +150,6 @@ export async function PUT(
       );
     }
 
-    // Check permissions based on role
     if (user.role === "PATIENT") {
       const patientProfile = await prisma.patient.findUnique({
         where: { userId: user.id },
@@ -163,7 +162,6 @@ export async function PUT(
         );
       }
 
-      // Patients can only update appointments that are not already OCCUPIED
       if (appointment.status === "OCCUPIED") {
         return NextResponse.json(
           { message: "Cannot update a completed appointment" },
@@ -182,14 +180,10 @@ export async function PUT(
         );
       }
     }
-    // Admin can update any appointment
 
     const body = await request.json();
-
-    // Validate input
     const validatedData = updateAppointmentSchema.parse(body);
 
-    // Calculate end time if start time or duration is changed
     let endTime = appointment.endTime;
 
     if (validatedData.startTime) {
@@ -202,7 +196,6 @@ export async function PUT(
       endTime = addMinutes(appointment.startTime, validatedData.duration);
     }
 
-    // If time is changed, check for conflicts
     if (validatedData.startTime || validatedData.duration) {
       const startTime = validatedData.startTime || appointment.startTime;
 
@@ -243,7 +236,6 @@ export async function PUT(
       }
     }
 
-    // Update appointment
     const updatedAppointment = await prisma.appointment.update({
       where: { id: params.id },
       data: {
@@ -299,19 +291,17 @@ export async function PUT(
   }
 }
 
-// DELETE appointment
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Обновлена сигнатура DELETE метода
+export async function DELETE(request: NextRequest, props: RouteParams) {
   try {
+    const params = await props.params;
+
     const user = await getUserFromToken(request);
 
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
       where: { id: params.id },
     });
@@ -323,7 +313,6 @@ export async function DELETE(
       );
     }
 
-    // Check permissions based on role
     if (user.role === "PATIENT") {
       const patientProfile = await prisma.patient.findUnique({
         where: { userId: user.id },
@@ -336,7 +325,6 @@ export async function DELETE(
         );
       }
 
-      // Patients can only cancel appointments that are not already OCCUPIED
       if (appointment.status === "OCCUPIED") {
         return NextResponse.json(
           { message: "Cannot cancel a completed appointment" },
@@ -344,7 +332,6 @@ export async function DELETE(
         );
       }
 
-      // For patients, we set the slot back to FREE
       await prisma.appointment.update({
         where: { id: params.id },
         data: {
@@ -370,9 +357,7 @@ export async function DELETE(
         );
       }
 
-      // Doctors can either cancel or delete appointments
       if (appointment.status === "BOOKED") {
-        // Set it back to FREE if it was booked
         await prisma.appointment.update({
           where: { id: params.id },
           data: {
@@ -383,7 +368,6 @@ export async function DELETE(
           },
         });
       } else {
-        // Delete the slot completely for FREE or OCCUPIED
         await prisma.appointment.delete({
           where: { id: params.id },
         });
@@ -391,7 +375,6 @@ export async function DELETE(
 
       return NextResponse.json({ message: "Appointment deleted successfully" });
     } else if (user.role === "ADMIN") {
-      // Admin can delete any appointment
       await prisma.appointment.delete({
         where: { id: params.id },
       });

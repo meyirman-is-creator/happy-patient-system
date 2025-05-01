@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     }
 
     // Remove password from the response
-    const { password, ...userWithoutPassword } = user;
+    const { ...userWithoutPassword } = user;
     console.log("User found, returning data for user:", userId);
 
     // Log the response to verify it's correct
@@ -111,7 +111,7 @@ export async function PUT(request: Request) {
     });
 
     // Remove password from the response
-    const { password, ...userWithoutPassword } = updatedUser;
+    const { ...userWithoutPassword } = updatedUser;
 
     return NextResponse.json(userWithoutPassword);
   } catch (error) {

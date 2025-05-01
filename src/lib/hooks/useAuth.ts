@@ -12,6 +12,7 @@ import {
   updateUserSuccess,
 } from "../redux/slices/authSlice";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
+import { User } from "@/lib/types";
 
 // Определяем интерфейс для ошибок аутентификации
 interface AuthError {
@@ -85,25 +86,33 @@ export const useAuth = () => {
   }, [token, dispatch]);
 
   // This query fetches the user data once the token is available
-  const { isLoading: userLoading } = useQuery({
+  const query = useQuery<User, AuthError>({
     queryKey: ["currentUser"],
     queryFn: auth.getMe,
     enabled: !!token && tokenChecked, // Only run when token exists and token check is complete
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onSuccess: (data) => {
-      if (data) {
-        console.log("User data fetched successfully via query:", data.id);
-        dispatch(updateUserSuccess(data));
-      }
-    },
-    onError: (error) => {
-      console.error("Error fetching user data:", error);
+  });
+
+  const { isLoading: userLoading } = query;
+
+  // Обрабатываем успешное получение данных
+  useEffect(() => {
+    if (query.data) {
+      console.log("User data fetched successfully via query:", query.data.id);
+      dispatch(updateUserSuccess(query.data));
+    }
+  }, [query.data, dispatch]);
+
+  // Обрабатываем ошибки запроса
+  useEffect(() => {
+    if (query.error) {
+      console.error("Error fetching user data:", query.error);
       // On error, we clean up the invalid token
       dispatch(logoutAction());
       deleteCookie("auth_token");
-    },
-  });
+    }
+  }, [query.error, dispatch]);
 
   const register = useMutation({
     mutationFn: auth.register,

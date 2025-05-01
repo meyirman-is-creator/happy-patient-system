@@ -21,6 +21,31 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
+interface DoctorProfile {
+  id: string;
+  specialization?: string;
+  user: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+interface PatientProfile {
+  id: string;
+  dateOfBirth?: string;
+  gender?: string;
+  user: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+interface User {
+  role?: "DOCTOR" | "PATIENT" | "ADMIN";
+  doctorProfile?: DoctorProfile;
+  patientProfile?: PatientProfile;
+}
+
 export default function CalendarPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,8 +54,7 @@ export default function CalendarPage() {
   const returnTo = searchParams.get("returnTo");
 
   const { user } = useAuth();
-  const { data: doctors = [], isLoading } = useDoctors();
-  // Fetch patient data if viewing a patient's calendar
+  const { data: doctors = [] } = useDoctors();
   const { data: patient } = usePatient(patientId || "");
 
   const [selectedDoctorId, setSelectedDoctorId] = useState(doctorId || "");
@@ -73,7 +97,7 @@ export default function CalendarPage() {
 
   // Determine the title based on context
   const getContextTitle = () => {
-    if (patientId && patient) {
+    if (patientId && patient && patient.user) {
       return `Записи пациента: ${patient.user.firstName} ${patient.user.lastName}`;
     } else if (selectedDoctor) {
       return `Расписание: ${selectedDoctor.user.firstName} ${selectedDoctor.user.lastName}`;
@@ -81,10 +105,12 @@ export default function CalendarPage() {
       return "Календарь приемов";
     }
   };
+
   const showBackButton =
     returnTo ||
     (patientId && patientId !== user?.patientProfile?.id) ||
     (doctorId && doctorId !== user?.doctorProfile?.id);
+
   return (
     <div className="ml-[20px] mt-[20px]">
       <div className="bg-white rounded-xl shadow-md p-6 border border-[#0A6EFF]/10">

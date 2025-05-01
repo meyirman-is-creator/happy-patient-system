@@ -1,4 +1,4 @@
-import { Role, AppointmentStatus } from "@prisma/client";
+import {  AppointmentStatus } from "@prisma/client";
 // API Response types
 export interface ApiResponse<T> {
   data?: T;

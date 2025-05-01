@@ -46,10 +46,10 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import {
   useAppointments,
   useCreateAppointment,
-  useUpdateAppointment,
   useDeleteAppointment,
 } from "@/lib/hooks/useQueries";
 import type { Appointment, AppointmentFormData } from "@/lib/types";
+import { AppointmentQueryParams, ErrorResponse } from "@/lib/types.d";
 import { AppointmentStatus } from "@prisma/client";
 
 interface CalendarProps {
@@ -85,7 +85,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
 
-  const query: any = {};
+  const query: AppointmentQueryParams = {};
   if (doctorId) query.doctorId = doctorId;
   if (patientId) query.patientId = patientId;
   query.startDate = format(startDate, "yyyy-MM-dd");
@@ -93,7 +93,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
 
   const { data: appointments = [], isLoading } = useAppointments(query);
   const createAppointment = useCreateAppointment();
-  const updateAppointment = useUpdateAppointment();
   const deleteAppointment = useDeleteAppointment();
 
   const handlePreviousWeek = () => {
@@ -163,10 +162,11 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       });
 
       setShowBookingDialog(false);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as ErrorResponse;
       toast({
         title: "Ошибка создания записи",
-        description: error.message || "Произошла ошибка при создании записи.",
+        description: err.message || "Произошла ошибка при создании записи.",
         variant: "destructive",
       });
     }
@@ -184,10 +184,11 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
       });
 
       setShowDetailsDialog(false);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as ErrorResponse;
       toast({
         title: "Ошибка отмены записи",
-        description: error.message || "Произошла ошибка при отмене записи.",
+        description: err.message || "Произошла ошибка при отмене записи.",
         variant: "destructive",
       });
     }

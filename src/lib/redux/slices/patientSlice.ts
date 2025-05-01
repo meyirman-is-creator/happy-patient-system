@@ -27,6 +27,7 @@ interface Patient extends BaseModel {
 
 // Определяем Appointment (так как есть ссылка из MedicalRecord)
 interface Appointment extends BaseModel {
+  
   patientId: string;
   doctorId: string;
   date: string;

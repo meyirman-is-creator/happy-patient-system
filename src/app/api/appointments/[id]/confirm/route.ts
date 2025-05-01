@@ -21,17 +21,26 @@ const getUserFromToken = async (request: Request) => {
     });
 
     return user;
-  } catch {
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // PUT confirm patient arrival
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request) {
   try {
+    // Extract appointment ID from the URL
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "Appointment ID is required" },
+        { status: 400 }
+      );
+    }
+
     const user = await getUserFromToken(request);
 
     if (!user) {
@@ -48,7 +57,7 @@ export async function PUT(
 
     // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!appointment) {
@@ -88,9 +97,9 @@ export async function PUT(
       );
     }
 
-    // Create a medical record entry
+    // Update appointment status
     const updatedAppointment = await prisma.appointment.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status: "OCCUPIED",
       },

@@ -1,5 +1,81 @@
 import { getCookie } from "cookies-next";
 
+// Определение интерфейсов для всех типов данных
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  role?: string;
+}
+
+interface LoginData {
+  email: string;
+  password: string;
+}
+
+interface UpdateUserData {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+interface AppointmentQueryParams {
+  startDate?: string;
+  endDate?: string;
+  doctorId?: string;
+  patientId?: string;
+  status?: string;
+  [key: string]: string | undefined; // Добавляем сигнатуру индекса
+}
+interface AppointmentData {
+  doctorId: string;
+  patientId?: string;
+  date: string;
+  time: string;
+  duration: number;
+  reason: string;
+  status?: string;
+}
+
+interface AppointmentCompletionData {
+  notes: string;
+  diagnosis?: string;
+  treatment?: string;
+  followUpRecommendations?: string;
+}
+
+interface DoctorData {
+  name: string;
+  specialization: string;
+  qualification?: string;
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+  };
+  availability?: {
+    days?: string[];
+    hours?: {
+      start: string;
+      end: string;
+    };
+  };
+}
+
+interface MedicalRecordData {
+  patientId: string;
+  doctorId: string;
+  appointmentId?: string;
+  diagnosis: string;
+  treatment: string;
+  notes?: string;
+  date?: string;
+}
+
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   let token = null;
 
@@ -30,7 +106,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       let errorData;
       try {
         errorData = JSON.parse(errorText);
-      } catch (e) {
+      } catch {
         errorData = { message: errorText || "Something went wrong" };
       }
 
@@ -47,12 +123,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 // Auth API
 export const auth = {
-  register: (data: any) =>
+  register: (data: RegisterData) =>
     fetchWithAuth("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  login: (data: any) =>
+  login: (data: LoginData) =>
     fetchWithAuth("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(data),
@@ -87,31 +163,36 @@ export const auth = {
     }
   },
 
-  updateMe: (data: any) =>
+  updateMe: (data: UpdateUserData) =>
     fetchWithAuth("/api/users/me", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
-  updatePassword: (data: any) =>
+  updatePassword: (data: UpdatePasswordData) =>
     fetchWithAuth("/api/users/me/password", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
-};
-export const appointments = {
-  getAll: (params?: any) => {
+};export const appointments = {
+  getAll: (params?: AppointmentQueryParams) => {
+    // Преобразуем params в Record<string, string>, исключая undefined значения
     const queryParams = params
-      ? `?${new URLSearchParams(params).toString()}`
+      ? `?${new URLSearchParams(
+          Object.entries(params)
+            .filter(([, value]) => value !== undefined)
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: value as string }), {})
+        ).toString()}`
       : "";
     return fetchWithAuth(`/api/appointments${queryParams}`);
   },
+  // Остальной код остается без изменений
   getById: (id: string) => fetchWithAuth(`/api/appointments/${id}`),
-  create: (data: any) =>
+  create: (data: AppointmentData) =>
     fetchWithAuth("/api/appointments", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string, data: any) =>
+  update: (id: string, data: Partial<AppointmentData>) =>
     fetchWithAuth(`/api/appointments/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -128,7 +209,7 @@ export const appointments = {
     fetchWithAuth(`/api/appointments/${id}/cancel`, {
       method: "PUT",
     }),
-  complete: (id: string, data: any) =>
+  complete: (id: string, data: AppointmentCompletionData) =>
     fetchWithAuth(`/api/appointments/${id}/complete`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -137,12 +218,12 @@ export const appointments = {
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),
-  create: (data: any) =>
+  create: (data: DoctorData) =>
     fetchWithAuth("/api/doctors", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string, data: any) =>
+  update: (id: string, data: Partial<DoctorData>) =>
     fetchWithAuth(`/api/doctors/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -161,12 +242,12 @@ export const patients = {
 };
 
 export const medicalRecords = {
-  create: (data: any) =>
+  create: (data: MedicalRecordData) =>
     fetchWithAuth("/api/medical-records", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string, data: any) =>
+  update: (id: string, data: Partial<MedicalRecordData>) =>
     fetchWithAuth(`/api/medical-records/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),

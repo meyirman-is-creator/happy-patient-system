@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/jwt";
 
+// Определяем тип для параметров маршрута
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 // GET specific patient
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: RouteParams) {
   try {
+    const params = await props.params;
     const user = await getUserFromToken(request);
 
     if (!user) {
@@ -37,7 +42,6 @@ export async function GET(
       );
     }
 
-    // ... остальной код остается без изменений
     // Check permissions based on role
     if (user.role === "PATIENT") {
       const patientProfile = await prisma.patient.findUnique({

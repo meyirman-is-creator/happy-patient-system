@@ -1,22 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/jwt";
 
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 // GET specific doctor
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: RouteParams) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await props.params;
 
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const doctor = await prisma.doctor.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -58,12 +62,10 @@ const updateDoctorSchema = z.object({
 });
 
 // PUT update doctor (admin only)
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: RouteParams) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await props.params;
 
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json(
@@ -72,9 +74,8 @@ export async function PUT(
       );
     }
 
-    // ... остальной код остается без изменений
     const doctor = await prisma.doctor.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { user: true },
     });
 
@@ -109,7 +110,7 @@ export async function PUT(
 
       // Update doctor profile
       return tx.doctor.update({
-        where: { id: params.id },
+        where: { id },
         data: doctorData,
         include: {
           user: {
@@ -144,12 +145,10 @@ export async function PUT(
 }
 
 // DELETE doctor (admin only)
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: RouteParams) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await props.params;
 
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json(
@@ -158,9 +157,8 @@ export async function DELETE(
       );
     }
 
-    // ... остальной код остается без изменений
     const doctor = await prisma.doctor.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!doctor) {

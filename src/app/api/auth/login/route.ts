@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     console.log("Token created:", token.substring(0, 10) + "...");
 
     // Remove password from response
-    const { password, ...userWithoutPassword } = user;
+    const { ...userWithoutPassword } = user;
 
     // Return user data and token
     return NextResponse.json({

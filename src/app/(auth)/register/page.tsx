@@ -11,12 +11,25 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/hooks/useAuth";
 
+interface ApiError {
+  message?: string;
+  [key: string]: unknown;
+}
+
 type FormData = {
   email: string;
   password: string;
   confirmPassword: string;
   firstName: string;
   lastName: string;
+  phone: string;
+};
+
+// Определяем тип RegisterData, который ожидает API
+type RegisterData = {
+  email: string;
+  password: string;
+  name: string;
   phone: string;
 };
 
@@ -82,17 +95,26 @@ export default function RegisterPage() {
     }
 
     try {
-      await register.mutateAsync(formData);
+      // Преобразуем formData в RegisterData
+      const registerData: RegisterData = {
+        email: formData.email,
+        password: formData.password,
+        name: `${formData.firstName} ${formData.lastName}`,
+        phone: formData.phone,
+      };
+
+      await register.mutateAsync(registerData);
       toast({
         title: "Регистрация успешна",
         description: "Ваш аккаунт создан. Пожалуйста, войдите в систему.",
         variant: "success",
       });
       router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
       toast({
         title: "Ошибка регистрации",
-        description: error.message || "Произошла ошибка при регистрации.",
+        description: apiError.message || "Произошла ошибка при регистрации.",
         variant: "destructive",
       });
     } finally {

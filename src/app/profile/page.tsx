@@ -123,10 +123,10 @@ export default function ProfilePage() {
       });
 
       setShowProfileDialog(false);
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка обновления",
-        description: error.message || "Не удалось обновить информацию профиля.",
+        description:"Не удалось обновить информацию профиля.",
         variant: "destructive",
       });
     }
@@ -160,10 +160,10 @@ export default function ProfilePage() {
       });
 
       setShowPasswordDialog(false);
-    } catch (error: any) {
+    } catch  {
       toast({
         title: "Ошибка обновления",
-        description: error.message || "Не удалось обновить пароль.",
+        description: "Не удалось обновить пароль.",
         variant: "destructive",
       });
     }

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 
 // Helper to get user from token
-const getUserFromToken = async (request: Request) => {
+const getUserFromToken = async (request: NextRequest) => {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
@@ -21,17 +21,25 @@ const getUserFromToken = async (request: Request) => {
     });
 
     return user;
-  } catch {
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // PUT mark patient as no-show (cancel)
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "Appointment ID is required" },
+        { status: 400 }
+      );
+    }
+
     const user = await getUserFromToken(request);
 
     if (!user) {
@@ -41,14 +49,14 @@ export async function PUT(
     // Only doctors or admins can mark no-show
     if (user.role !== "DOCTOR" && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Only doctors can mark no-show" },
+        { message: "Only doctors or admins can mark no-show" },
         { status: 403 }
       );
     }
 
     // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!appointment) {
@@ -82,7 +90,7 @@ export async function PUT(
 
     // Reset the appointment to FREE status
     const updatedAppointment = await prisma.appointment.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         patientId: null,
         title: null,
@@ -107,7 +115,7 @@ export async function PUT(
 
     return NextResponse.json(updatedAppointment);
   } catch (error) {
-    console.error("Cancel appointment error:", error);
+    console.error(error);
     return NextResponse.json(
       { message: "Failed to cancel appointment" },
       { status: 500 }

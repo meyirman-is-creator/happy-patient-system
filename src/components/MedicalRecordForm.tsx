@@ -37,8 +37,7 @@ interface MedicalRecordFormProps {
 export function MedicalRecordForm({
   isOpen,
   onClose,
-  appointment,
-  patientId,
+  appointment
 }: MedicalRecordFormProps) {
   const { toast } = useToast();
   const [doctorNotes, setDoctorNotes] = useState(
@@ -69,10 +68,10 @@ export function MedicalRecordForm({
       });
 
       onClose();
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Ошибка сохранения",
-        description: error.message || "Произошла ошибка при сохранении записи.",
+        description: "Произошла ошибка при сохранении записи.",
         variant: "destructive",
       });
     }

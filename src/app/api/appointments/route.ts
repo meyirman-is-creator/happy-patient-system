@@ -3,7 +3,19 @@ import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { addMinutes } from "date-fns";
-import { AppointmentQueryParams } from "@/lib/types.d";
+// Удаляем неиспользуемый импорт AppointmentQueryParams
+
+// Определяем более конкретный тип для объекта запроса
+interface AppointmentQuery {
+  doctorId?: string;
+  patientId?: string;
+  startTime?: {
+    gte?: Date;
+  };
+  endTime?: {
+    lte?: Date;
+  };
+}
 
 // Helper to get user from token
 const getUserFromToken = async (request: Request) => {
@@ -24,7 +36,8 @@ const getUserFromToken = async (request: Request) => {
     });
 
     return user;
-  } catch (error) {
+  } catch  {
+    // Используем _ для обозначения неиспользуемого параметра
     return null;
   }
 };
@@ -44,7 +57,7 @@ export async function GET(request: Request) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    const query: Record<string, any> = {};
+    const query: AppointmentQuery = {}; // Используем типизированный объект вместо Record<string, any>
 
     // Filter by doctor or patient based on role
     if (user.role === "DOCTOR") {

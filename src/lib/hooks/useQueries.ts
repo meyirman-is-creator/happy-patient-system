@@ -20,7 +20,7 @@ import {
   updateMedicalRecordSuccess,
 } from "../redux/slices/patientSlice";
 import { useEffect } from "react";
-
+import { Doctor,Appointment } from "@/lib/types";
 // Базовый интерфейс для моделей с общими полями аудита
 interface BaseModel {
   id: string;
@@ -47,33 +47,12 @@ interface User {
   [key: string]: unknown;
 }
 
-// Обновленный интерфейс Doctor
-interface Doctor extends BaseModel {
-  name: string;
-  specialization: string;
-  userId: string;
-  user?: User;
-  [key: string]: unknown;
-}
 
 // Обновленный интерфейс Patient
 interface Patient extends BaseModel {
   name: string;
   userId: string;
   user?: User;
-  [key: string]: unknown;
-}
-
-// Обновленный интерфейс Appointment
-interface Appointment extends BaseModel {
-  patientId: string;
-  doctorId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  notes?: string;
-  doctor?: Doctor;
   [key: string]: unknown;
 }
 
