@@ -235,7 +235,6 @@ export default function ProfilePage() {
     patientProfile: undefined,
     doctorProfile: undefined,
   };
-
   const displayUser: UserType =
     isViewingOtherPatient && viewedPatient
       ? {
@@ -287,49 +286,123 @@ export default function ProfilePage() {
 
         <div className="grid gap-8 md:grid-cols-3 mt-6">
           <Card className="flex flex-col h-full border border-[#0A6EFF]/10 bg-white shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-4 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
-              <div className="flex flex-col items-center gap-4">
-                <Avatar className="h-28 w-28 bg-[#0A6EFF]/10 ring-4 ring-[#0A6EFF]/20">
-                  <AvatarFallback className="text-2xl font-bold text-[#0A6EFF]">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <CardTitle className="text-2xl text-[#243352]">
-                    {displayUser.role === "DOCTOR" ? "Др. " : ""}
-                    {displayUser.firstName} {displayUser.lastName}
-                  </CardTitle>
-                  <CardDescription className="text-[#0A6EFF] font-medium">
-                    {displayUser.role === "DOCTOR"
-                      ? "Врач"
-                      : displayUser.role === "ADMIN"
-                      ? "Администратор"
-                      : "Пациент"}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-5 mt-4">
-                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
-                  <Mail className="h-5 w-5 text-[#0A6EFF]" />
-                  <span className="text-[#243352]">{displayUser.email}</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
-                  <Phone className="h-5 w-5 text-[#0A6EFF]" />
-                  <span className="text-[#243352]">{displayUser.phone}</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
-                  <User className="h-5 w-5 text-[#0A6EFF]" />
-                  <span className="text-[#243352]">
-                    В системе с{" "}
-                    {format(new Date(displayUser.createdAt), "LLLL yyyy", {
-                      locale: ru,
-                    })}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
+            {isViewingOtherPatient ? (
+              <>
+                <CardHeader className="pb-4 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
+                  <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-28 w-28 bg-[#0A6EFF]/10 ring-4 ring-[#0A6EFF]/20">
+                      <AvatarFallback className="text-2xl font-bold text-[#0A6EFF]">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-center">
+                      <CardTitle className="text-2xl text-[#243352]">
+                        {displayUser.role === "DOCTOR" ? "Др. " : ""}
+                        {displayUser.firstName} {displayUser.lastName}
+                      </CardTitle>
+                      <CardDescription className="text-[#0A6EFF] font-medium">
+                        {displayUser.role === "DOCTOR"
+                          ? "Врач"
+                          : displayUser.role === "ADMIN"
+                          ? "Администратор"
+                          : "Пациент"}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-5 mt-4">
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <Mail className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        {displayUser.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <Phone className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        {displayUser.phone}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <User className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        В системе с{" "}
+                        {displayUser.createdAt &&
+                        typeof displayUser.createdAt === "string" &&
+                        displayUser.createdAt.trim() !== ""
+                          ? format(
+                              new Date(displayUser.createdAt),
+                              "LLLL yyyy",
+                              {
+                                locale: ru,
+                              }
+                            )
+                          : "неизвестно"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </>
+            ) : (
+              <>
+                <CardHeader className="pb-4 border-b border-[#0A6EFF]/10 bg-gradient-to-r from-[#0A6EFF]/5 to-white">
+                  <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-28 w-28 bg-[#0A6EFF]/10 ring-4 ring-[#0A6EFF]/20">
+                      <AvatarFallback className="text-2xl font-bold text-[#0A6EFF]">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-center">
+                      <CardTitle className="text-2xl text-[#243352]">
+                        {user.role === "DOCTOR" ? "Др. " : ""}
+                        {user.firstName} {user.lastName}
+                      </CardTitle>
+                      <CardDescription className="text-[#0A6EFF] font-medium">
+                        {user.role === "DOCTOR"
+                          ? "Врач"
+                          : user.role === "ADMIN"
+                          ? "Администратор"
+                          : "Пациент"}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-5 mt-4">
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <Mail className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        {user.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <Phone className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        {user.phone}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-[#0A6EFF]/5 rounded-lg">
+                      <User className="h-5 w-5 text-[#0A6EFF]" />
+                      <span className="text-[#243352]">
+                        В системе с{" "}
+                        {user.createdAt &&
+                        typeof user.createdAt === "string" &&
+                        user.createdAt.trim() !== ""
+                          ? format(
+                              new Date(user.createdAt),
+                              "LLLL yyyy",
+                              {
+                                locale: ru,
+                              }
+                            )
+                          : "неизвестно"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </>
+            )}
             {!isViewingOtherPatient && (
               <CardFooter className="flex flex-col space-y-3 pt-2">
                 <Button

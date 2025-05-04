@@ -282,8 +282,12 @@ export const usePatients = () => {
       const formattedData = query.data.map(patient => ({
         ...patient,
         name: `${patient.user.firstName} ${patient.user.lastName}`,
-        createdAt: patient.createdAt.toISOString(),
-        updatedAt: patient.updatedAt.toISOString()
+        createdAt: patient.createdAt instanceof Date 
+          ? patient.createdAt.toISOString() 
+          : patient.createdAt,
+        updatedAt: patient.updatedAt instanceof Date 
+          ? patient.updatedAt.toISOString() 
+          : patient.updatedAt
       }));
       dispatch(fetchPatientsSuccess(formattedData));
     }
@@ -317,9 +321,15 @@ export const usePatientMedicalRecords = (id: string) => {
         doctorNotes: record.doctorNotes,
         diagnosis: record.doctorNotes || '',
         treatment: record.doctorNotes || '',
-        date: record.createdAt.toISOString(),
-        createdAt: record.createdAt.toISOString(),
-        updatedAt: record.updatedAt.toISOString()
+        date: record.createdAt instanceof Date 
+          ? record.createdAt.toISOString() 
+          : record.createdAt,
+        createdAt: record.createdAt instanceof Date 
+          ? record.createdAt.toISOString() 
+          : record.createdAt,
+        updatedAt: record.updatedAt instanceof Date 
+          ? record.updatedAt.toISOString() 
+          : record.updatedAt
       }));
       dispatch(fetchMedicalRecordsSuccess(formattedData));
     }
