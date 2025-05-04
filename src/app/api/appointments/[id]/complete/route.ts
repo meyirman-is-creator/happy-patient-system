@@ -3,7 +3,12 @@ import { verify } from "jsonwebtoken";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 
-// Helper to get user from token
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 const getUserFromToken = async (request: Request) => {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -28,17 +33,14 @@ const getUserFromToken = async (request: Request) => {
   }
 };
 
-// Complete appointment schema
 const completeAppointmentSchema = z.object({
-  doctorNotes: z.string(),
+  notes: z.string(),
 });
 
-// PUT complete appointment and add medical record
-export async function PUT(request: Request) {
+export async function PUT(request: Request, props: RouteParams) {
   try {
-    // Extract appointment ID from the URL
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const params = await props.params;
+    const id = params.id;
 
     if (!id) {
       return NextResponse.json(
@@ -53,7 +55,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Only doctors can complete appointments
     if (user.role !== "DOCTOR") {
       return NextResponse.json(
         { message: "Only doctors can complete appointments" },
@@ -61,7 +62,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Fetch current appointment
     const appointment = await prisma.appointment.findUnique({
       where: { id: id },
       include: {
@@ -76,7 +76,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Verify doctor is assigned to this appointment
     const doctorProfile = await prisma.doctor.findUnique({
       where: { userId: user.id },
     });
@@ -88,7 +87,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Can only complete appointments with status BOOKED or OCCUPIED
     if (appointment.status === "FREE") {
       return NextResponse.json(
         { message: "Cannot complete a free appointment" },
@@ -96,7 +94,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Verify patient is assigned
     if (!appointment.patientId) {
       return NextResponse.json(
         { message: "No patient assigned to this appointment" },
@@ -105,31 +102,25 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-
-    // Validate input
     const validatedData = completeAppointmentSchema.parse(body);
 
-    // Create or update medical record
     if (appointment.medicalRecord) {
-      // Update existing record
       await prisma.medicalRecord.update({
         where: { id: appointment.medicalRecord.id },
         data: {
-          doctorNotes: validatedData.doctorNotes,
+          doctorNotes: validatedData.notes,
         },
       });
     } else {
-      // Create new record
       await prisma.medicalRecord.create({
         data: {
           appointmentId: id,
           patientId: appointment.patientId,
-          doctorNotes: validatedData.doctorNotes,
+          doctorNotes: validatedData.notes,
         },
       });
     }
 
-    // Update appointment status
     const updatedAppointment = await prisma.appointment.update({
       where: { id: id },
       data: {

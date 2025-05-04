@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 
+// Define RouteParams type
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 // Helper to get user from token
 const getUserFromToken = async (request: NextRequest) => {
   const authHeader = request.headers.get("authorization");
@@ -28,10 +35,10 @@ const getUserFromToken = async (request: NextRequest) => {
 };
 
 // PUT mark patient as no-show (cancel)
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest, props: RouteParams) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const params = await props.params;
+    const id = params.id;
 
     if (!id) {
       return NextResponse.json(
