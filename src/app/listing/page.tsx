@@ -99,15 +99,18 @@ export default function ListingPage() {
 
   const handleDeleteDoctor = async (doctorId: string) => {
     try {
+      console.log("Deleting doctor with ID:", doctorId);
       await deleteDoctor.mutateAsync(doctorId);
       toast({
         title: "Врач удален",
         description: "Врач был успешно удален из системы.",
       });
-    } catch {
+    } catch (error) {
+      console.error("Delete doctor error:", error);
       toast({
         title: "Ошибка удаления",
-        description: "Произошла ошибка при удалении врача.",
+        description:
+          "Произошла ошибка при удалении врача. Возможно, у врача есть записи на прием.",
         variant: "destructive",
       });
     }
@@ -130,26 +133,24 @@ export default function ListingPage() {
   const handleSubmitDoctorForm = async () => {
     try {
       if (editingDoctor) {
-        const updatePayload = {
+        // For updating an existing doctor
+        await updateDoctor.mutateAsync({
           id: editingDoctor.id,
           data: {
+            firstName: doctorFormData.firstName,
+            lastName: doctorFormData.lastName,
+            phone: doctorFormData.phone,
             specialization: doctorFormData.specialization,
             education: doctorFormData.education,
-            user: {
-              firstName: doctorFormData.firstName,
-              lastName: doctorFormData.lastName,
-              phone: doctorFormData.phone,
-            },
           },
-        };
-
-        await updateDoctor.mutateAsync(updatePayload);
+        });
 
         toast({
           title: "Врач обновлен",
           description: "Информация о враче была успешно обновлена.",
         });
       } else {
+        // For creating a new doctor
         if (!doctorFormData.password) {
           toast({
             title: "Отсутствует пароль",
@@ -160,8 +161,7 @@ export default function ListingPage() {
           return;
         }
 
-        // Here's the corrected typed payload
-        const createPayload = {
+        await createDoctor.mutateAsync({
           email: doctorFormData.email,
           password: doctorFormData.password,
           firstName: doctorFormData.firstName,
@@ -169,9 +169,7 @@ export default function ListingPage() {
           phone: doctorFormData.phone,
           specialization: doctorFormData.specialization,
           education: doctorFormData.education,
-        };
-
-        await createDoctor.mutateAsync(createPayload);
+        });
 
         toast({
           title: "Врач добавлен",
@@ -180,10 +178,11 @@ export default function ListingPage() {
       }
 
       setShowDoctorDialog(false);
-    } catch {
+    } catch (error) {
+      console.error("Doctor operation error:", error);
       toast({
         title: "Ошибка операции",
-        description: "Произошла ошибка.",
+        description: "Произошла ошибка при обработке данных врача.",
         variant: "destructive",
       });
     }

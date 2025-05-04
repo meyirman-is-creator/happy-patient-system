@@ -34,6 +34,7 @@ interface AppointmentQueryParams {
   status?: string;
   [key: string]: string | undefined; // Добавляем сигнатуру индекса
 }
+
 interface AppointmentData {
   doctorId: string;
   patientId?: string;
@@ -42,7 +43,7 @@ interface AppointmentData {
   duration: number;
   reason: string;
   status?: string;
-  title:string | null | undefined;
+  title: string | null | undefined;
 }
 
 interface AppointmentCompletionData {
@@ -60,6 +61,15 @@ export interface CreateDoctorData {
   phone: string;
   specialization: string;
   education: string;
+}
+
+// New interface for doctor updates to match component expectations
+export interface UpdateDoctorData {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  specialization?: string;
+  education?: string;
 }
 
 interface MedicalRecordData {
@@ -169,19 +179,23 @@ export const auth = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
-};export const appointments = {
+};
+
+export const appointments = {
   getAll: (params?: AppointmentQueryParams) => {
     // Преобразуем params в Record<string, string>, исключая undefined значения
     const queryParams = params
       ? `?${new URLSearchParams(
           Object.entries(params)
             .filter(([, value]) => value !== undefined)
-            .reduce((acc, [key, value]) => ({ ...acc, [key]: value as string }), {})
+            .reduce(
+              (acc, [key, value]) => ({ ...acc, [key]: value as string }),
+              {}
+            )
         ).toString()}`
       : "";
     return fetchWithAuth(`/api/appointments${queryParams}`);
   },
-  // Остальной код остается без изменений
   getById: (id: string) => fetchWithAuth(`/api/appointments/${id}`),
   create: (data: AppointmentData) => {
     // Transform the data to match what the API expects
@@ -192,9 +206,9 @@ export const auth = {
       symptoms: data.reason, // Map reason to symptoms
       duration: data.duration,
       title: data.title,
-      status: data.status
+      status: data.status,
     };
-    
+
     return fetchWithAuth("/api/appointments", {
       method: "POST",
       body: JSON.stringify(transformedData),
@@ -223,6 +237,7 @@ export const auth = {
       body: JSON.stringify(data),
     }),
 };
+
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),
@@ -231,7 +246,7 @@ export const doctors = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string, data: Partial<CreateDoctorData>) =>
+  update: (id: string, data: UpdateDoctorData) =>
     fetchWithAuth(`/api/doctors/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),

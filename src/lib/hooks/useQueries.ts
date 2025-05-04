@@ -64,16 +64,15 @@ export interface CreateDoctorData {
   education: string;
 }
 
+// Updated the interface to match what the component is sending
 interface UpdateDoctorData {
   id: string;
   data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
     specialization?: string;
     education?: string;
-    user?: {
-      firstName?: string;
-      lastName?: string;
-      phone?: string;
-    };
   };
 }
 
@@ -244,7 +243,7 @@ export const useCreateDoctor = () => {
         lastName: data.lastName,
         phone: data.phone,
         specialization: data.specialization,
-        education: data.education
+        education: data.education,
       });
     },
     onSuccess: (data) => {

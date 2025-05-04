@@ -7,6 +7,7 @@ import {
   Phone,
   GraduationCap,
   Stethoscope,
+  Edit
 } from "lucide-react";
 
 import {
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 
 import type { Doctor } from "@/lib/types";
+import { useState } from "react";
 
 interface DoctorCardProps {
   doctor: Doctor;
@@ -41,10 +43,11 @@ interface DoctorCardProps {
 export function DoctorCard({
   doctor,
   isAdmin,
-  onEdit
+  onEdit,
 }: DoctorCardProps) {
   const { user } = doctor;
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
     <Card className="flex flex-col h-full border border-[#0A6EFF]/10 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
@@ -108,15 +111,16 @@ export function DoctorCard({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onEdit?.(doctor)}
+              onClick={() => onEdit && onEdit(doctor)}
               className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
             >
+              <Edit className="h-4 w-4 mr-2" />
               Изменить
             </Button>
 
-            <Dialog>
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogTrigger asChild>
-               
+                
               </DialogTrigger>
               <DialogContent className="bg-white border-2 border-[#0A6EFF]/10 rounded-xl shadow-lg">
                 <DialogHeader>
@@ -131,12 +135,12 @@ export function DoctorCard({
                 <DialogFooter className="gap-3 mt-4">
                   <Button
                     variant="outline"
-                    onClick={(e) => e.preventDefault()}
+                    onClick={() => setShowDeleteDialog(false)}
                     className="border-2 border-[#0A6EFF]/10 hover:bg-[#0A6EFF]/5 text-[#243352]"
                   >
                     Отмена
                   </Button>
-                 
+                  
                 </DialogFooter>
               </DialogContent>
             </Dialog>
