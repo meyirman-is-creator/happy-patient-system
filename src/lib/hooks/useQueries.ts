@@ -107,9 +107,14 @@ export const useCreateAppointment = () => {
   return useMutation({
     mutationFn: (data: AppointmentData) => {
       const formattedData = {
-        ...data,
+        doctorId: data.doctorId,
         patientId: data.patientId ?? undefined,
-        duration: data.duration ?? 30  
+        date: data.date,
+        time: data.time,
+        reason: data.reason,
+        duration: data.duration ?? 30,
+        title: data.title,
+        status: data.status
       };
       return appointments.create(formattedData);
     },

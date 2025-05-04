@@ -152,7 +152,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         });
         return;
       }
-  
+    
       const appointmentDoctorId = formData.doctorId || doctorId;
       if (!appointmentDoctorId) {
         toast({
@@ -162,21 +162,23 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         });
         return;
       }
-  
+    
+      // Create object that matches AppointmentData interface
       await createAppointment.mutateAsync({
         doctorId: appointmentDoctorId,
+        patientId: formData.patientId,
         date: format(formData.startTime, 'yyyy-MM-dd'),
         time: format(formData.startTime, 'HH:mm'),
         reason: formData.symptoms || formData.title || 'Прием',
         duration: formData.duration,
         title: formData.title,
       });
-  
+    
       toast({
         title: "Запись создана",
         description: "Ваша запись успешно создана.",
       });
-  
+    
       setShowBookingDialog(false);
     } catch (error) {
       const err = error as ErrorResponse;

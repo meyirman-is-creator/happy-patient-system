@@ -42,6 +42,7 @@ interface AppointmentData {
   duration: number;
   reason: string;
   status?: string;
+  title:string | null | undefined;
 }
 
 interface AppointmentCompletionData {
@@ -189,11 +190,23 @@ export const auth = {
   },
   // Остальной код остается без изменений
   getById: (id: string) => fetchWithAuth(`/api/appointments/${id}`),
-  create: (data: AppointmentData) =>
-    fetchWithAuth("/api/appointments", {
+  create: (data: AppointmentData) => {
+    // Transform the data to match what the API expects
+    const transformedData = {
+      doctorId: data.doctorId,
+      patientId: data.patientId,
+      startTime: `${data.date}T${data.time}`, // Combine date and time into startTime
+      symptoms: data.reason, // Map reason to symptoms
+      duration: data.duration,
+      title: data.title,
+      status: data.status
+    };
+    
+    return fetchWithAuth("/api/appointments", {
       method: "POST",
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify(transformedData),
+    });
+  },
   update: (id: string, data: Partial<AppointmentData>) =>
     fetchWithAuth(`/api/appointments/${id}`, {
       method: "PUT",
