@@ -1,3 +1,4 @@
+// src/lib/hooks/useQueries.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppDispatch } from "../redux/hooks";
 import { appointments, doctors, patients, medicalRecords } from "../api";
@@ -25,7 +26,7 @@ import {
   Appointment,
   Patient,
   MedicalRecord,
-  AppointmentData
+  AppointmentData,
 } from "@/lib/types";
 
 interface AppointmentParams {
@@ -35,6 +36,7 @@ interface AppointmentParams {
   status?: string;
   [key: string]: string | undefined;
 }
+
 export type MedicalRecordData = {
   patientId: string;
   appointmentId: string;
@@ -43,6 +45,7 @@ export type MedicalRecordData = {
   treatment: string;
   doctorNotes?: string | null;
 };
+
 interface AppointmentCompletionData {
   notes: string;
   diagnosis?: string;
@@ -50,15 +53,13 @@ interface AppointmentCompletionData {
   [key: string]: unknown;
 }
 
-interface CreateDoctorData {
-  user: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    role: "DOCTOR";
-  };
+// Updated to make the type compatible with the form data structure
+export interface CreateDoctorData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   specialization: string;
   education: string;
 }
@@ -114,7 +115,7 @@ export const useCreateAppointment = () => {
         reason: data.reason,
         duration: data.duration ?? 30,
         title: data.title,
-        status: data.status
+        status: data.status,
       };
       return appointments.create(formattedData);
     },
@@ -133,7 +134,7 @@ export const useUpdateAppointment = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) => {
       const formattedData = {
         ...data,
-        patientId: data.patientId ?? undefined
+        patientId: data.patientId ?? undefined,
       };
       return appointments.update(id, formattedData);
     },
@@ -235,11 +236,16 @@ export const useCreateDoctor = () => {
 
   return useMutation({
     mutationFn: (data: CreateDoctorData) => {
-      const doctorData = {
-        ...data,
-        name: `${data.user.firstName} ${data.user.lastName}`
-      };
-      return doctors.create(doctorData);
+      // Create the doctor data structure that matches what the API expects
+      return doctors.create({
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        specialization: data.specialization,
+        education: data.education
+      });
     },
     onSuccess: (data) => {
       dispatch(createDoctorSuccess(data));
@@ -284,15 +290,17 @@ export const usePatients = () => {
 
   useEffect(() => {
     if (query.data) {
-      const formattedData = query.data.map(patient => ({
+      const formattedData = query.data.map((patient) => ({
         ...patient,
         name: `${patient.user.firstName} ${patient.user.lastName}`,
-        createdAt: patient.createdAt instanceof Date 
-          ? patient.createdAt.toISOString() 
-          : patient.createdAt,
-        updatedAt: patient.updatedAt instanceof Date 
-          ? patient.updatedAt.toISOString() 
-          : patient.updatedAt
+        createdAt:
+          patient.createdAt instanceof Date
+            ? patient.createdAt.toISOString()
+            : patient.createdAt,
+        updatedAt:
+          patient.updatedAt instanceof Date
+            ? patient.updatedAt.toISOString()
+            : patient.updatedAt,
       }));
       dispatch(fetchPatientsSuccess(formattedData));
     }
@@ -319,22 +327,25 @@ export const usePatientMedicalRecords = (id: string) => {
 
   useEffect(() => {
     if (query.data) {
-      const formattedData = query.data.map(record => ({
+      const formattedData = query.data.map((record) => ({
         id: record.id,
         appointmentId: record.appointmentId,
         patientId: record.patientId,
         doctorNotes: record.doctorNotes,
-        diagnosis: record.doctorNotes || '',
-        treatment: record.doctorNotes || '',
-        date: record.createdAt instanceof Date 
-          ? record.createdAt.toISOString() 
-          : record.createdAt,
-        createdAt: record.createdAt instanceof Date 
-          ? record.createdAt.toISOString() 
-          : record.createdAt,
-        updatedAt: record.updatedAt instanceof Date 
-          ? record.updatedAt.toISOString() 
-          : record.updatedAt
+        diagnosis: record.doctorNotes || "",
+        treatment: record.doctorNotes || "",
+        date:
+          record.createdAt instanceof Date
+            ? record.createdAt.toISOString()
+            : record.createdAt,
+        createdAt:
+          record.createdAt instanceof Date
+            ? record.createdAt.toISOString()
+            : record.createdAt,
+        updatedAt:
+          record.updatedAt instanceof Date
+            ? record.updatedAt.toISOString()
+            : record.updatedAt,
       }));
       dispatch(fetchMedicalRecordsSuccess(formattedData));
     }
@@ -360,6 +371,7 @@ export const useCreateMedicalRecord = () => {
     },
   });
 };
+
 export const useUpdateMedicalRecord = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();

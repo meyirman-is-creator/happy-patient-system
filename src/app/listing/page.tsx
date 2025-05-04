@@ -1,3 +1,4 @@
+// src/app/listing/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -32,7 +33,6 @@ import {
 } from "@/lib/hooks/useQueries";
 import { Doctor, Appointment } from "@/lib/types";
 
-// Define the form data type to match what we're collecting in the form
 interface DoctorFormData {
   email: string;
   password: string;
@@ -41,34 +41,6 @@ interface DoctorFormData {
   phone: string;
   specialization: string;
   education: string;
-}
-
-// Interface for creating doctor
-interface CreateDoctorData {
-  user: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    role: "DOCTOR";
-  };
-  specialization: string;
-  education: string;
-}
-
-// Interface for updating doctor
-interface UpdateDoctorData {
-  id: string;
-  data: {
-    specialization?: string;
-    education?: string;
-    user?: {
-      firstName?: string;
-      lastName?: string;
-      phone?: string;
-    };
-  };
 }
 
 export default function ListingPage() {
@@ -102,7 +74,6 @@ export default function ListingPage() {
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
 
-  // Filter doctors by search query
   const filteredDoctors = doctors.filter((doctor) => {
     const fullName =
       `${doctor.user.firstName} ${doctor.user.lastName}`.toLowerCase();
@@ -159,8 +130,7 @@ export default function ListingPage() {
   const handleSubmitDoctorForm = async () => {
     try {
       if (editingDoctor) {
-        // Update existing doctor - structure data correctly for UpdateDoctorData
-        const updatePayload: UpdateDoctorData = {
+        const updatePayload = {
           id: editingDoctor.id,
           data: {
             specialization: doctorFormData.specialization,
@@ -180,7 +150,6 @@ export default function ListingPage() {
           description: "Информация о враче была успешно обновлена.",
         });
       } else {
-        // Create new doctor
         if (!doctorFormData.password) {
           toast({
             title: "Отсутствует пароль",
@@ -191,16 +160,13 @@ export default function ListingPage() {
           return;
         }
 
-        // Create proper payload for API
-        const createPayload: CreateDoctorData = {
-          user: {
-            email: doctorFormData.email,
-            password: doctorFormData.password,
-            firstName: doctorFormData.firstName,
-            lastName: doctorFormData.lastName,
-            phone: doctorFormData.phone,
-            role: "DOCTOR",
-          },
+        // Here's the corrected typed payload
+        const createPayload = {
+          email: doctorFormData.email,
+          password: doctorFormData.password,
+          firstName: doctorFormData.firstName,
+          lastName: doctorFormData.lastName,
+          phone: doctorFormData.phone,
           specialization: doctorFormData.specialization,
           education: doctorFormData.education,
         };

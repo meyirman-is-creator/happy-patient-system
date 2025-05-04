@@ -52,21 +52,14 @@ interface AppointmentCompletionData {
   followUpRecommendations?: string;
 }
 
-interface DoctorData {
-  name: string;
+export interface CreateDoctorData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   specialization: string;
-  qualification?: string;
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-  };
-  availability?: {
-    days?: string[];
-    hours?: {
-      start: string;
-      end: string;
-    };
-  };
+  education: string;
 }
 
 interface MedicalRecordData {
@@ -233,12 +226,12 @@ export const auth = {
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),
-  create: (data: DoctorData) =>
+  create: (data: CreateDoctorData) =>
     fetchWithAuth("/api/doctors", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string, data: Partial<DoctorData>) =>
+  update: (id: string, data: Partial<CreateDoctorData>) =>
     fetchWithAuth(`/api/doctors/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
