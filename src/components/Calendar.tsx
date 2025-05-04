@@ -1,6 +1,7 @@
+// src/components/Calendar.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   addDays,
   format,
@@ -71,6 +72,16 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     symptoms: "",
   });
 
+  // Update formData when doctorId prop changes
+  useEffect(() => {
+    if (doctorId) {
+      setFormData((prev) => ({
+        ...prev,
+        doctorId: doctorId,
+      }));
+    }
+  }, [doctorId]);
+
   const startHour = 7;
   const endHour = 22;
 
@@ -97,7 +108,8 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
   if (query.startDate) appointmentParams.startDate = query.startDate;
   if (query.endDate) appointmentParams.endDate = query.endDate;
 
-  const { data: appointments = [], isLoading } = useAppointments(appointmentParams);
+  const { data: appointments = [], isLoading } =
+    useAppointments(appointmentParams);
   const createAppointment = useCreateAppointment();
   const deleteAppointment = useDeleteAppointment();
 
@@ -142,6 +154,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     });
     setShowBookingDialog(true);
   };
+
   const handleSubmitBooking = async () => {
     try {
       if (!formData.startTime || !formData.duration) {
@@ -152,7 +165,7 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         });
         return;
       }
-    
+
       const appointmentDoctorId = formData.doctorId || doctorId;
       if (!appointmentDoctorId) {
         toast({
@@ -162,23 +175,22 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
         });
         return;
       }
-    
-      // Create object that matches AppointmentData interface
+
       await createAppointment.mutateAsync({
         doctorId: appointmentDoctorId,
         patientId: formData.patientId,
-        date: format(formData.startTime, 'yyyy-MM-dd'),
-        time: format(formData.startTime, 'HH:mm'),
-        reason: formData.symptoms || formData.title || 'Прием',
+        date: format(formData.startTime, "yyyy-MM-dd"),
+        time: format(formData.startTime, "HH:mm"),
+        reason: formData.symptoms || formData.title || "Прием",
         duration: formData.duration,
         title: formData.title,
       });
-    
+
       toast({
         title: "Запись создана",
         description: "Ваша запись успешно создана.",
       });
-    
+
       setShowBookingDialog(false);
     } catch (error) {
       const err = error as ErrorResponse;
@@ -212,7 +224,6 @@ export function Calendar({ doctorId, patientId }: CalendarProps) {
     }
   };
 
-  // Остальной код остается без изменений...
   const getSlotAppointment = (day: Date, time: Date) => {
     return appointments.find((appointment) => {
       const appointmentDate = new Date(appointment.startTime);

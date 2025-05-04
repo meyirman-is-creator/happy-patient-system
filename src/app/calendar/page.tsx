@@ -1,3 +1,4 @@
+// src/app/calendar/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -72,8 +73,27 @@ export default function CalendarPage() {
       !doctorId
     ) {
       setSelectedDoctorId(user.doctorProfile.id);
+      // Update URL with the doctor's ID
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("doctorId", user.doctorProfile.id);
+      router.push(`/calendar?${params.toString()}`);
     }
-  }, [user, doctorId, selectedDoctorId]);
+  }, [user, doctorId, selectedDoctorId, router, searchParams]);
+
+  // Handle doctor selection change
+  const handleDoctorChange = (value: string) => {
+    setSelectedDoctorId(value);
+
+    // Update URL with the selected doctor's ID
+    const params = new URLSearchParams(searchParams.toString());
+    if (value && value !== "select-doctor") {
+      params.set("doctorId", value);
+    } else {
+      params.delete("doctorId");
+    }
+
+    router.push(`/calendar?${params.toString()}`);
+  };
 
   const selectedDoctor = doctors.find(
     (d) => d.id === (selectedDoctorId || doctorId)
@@ -162,7 +182,7 @@ export default function CalendarPage() {
               </Label>
               <Select
                 value={selectedDoctorId}
-                onValueChange={setSelectedDoctorId}
+                onValueChange={handleDoctorChange}
               >
                 <SelectTrigger className="bg-white border-2 border-[#0A6EFF]/10 focus:border-[#0A6EFF] focus:ring-1 focus:ring-[#0A6EFF] h-12 rounded-lg">
                   <SelectValue placeholder="Выберите врача" />
