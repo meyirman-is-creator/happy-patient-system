@@ -85,7 +85,7 @@ export default function CalendarPage() {
       router.push(returnTo);
     } else if (patientId) {
       router.push(`/profile?patientId=${patientId}&tab=appointments`);
-    } else if (doctorId && user?.role === "ADMIN") {
+    } else if (doctorId) {
       router.push("/listing");
     } else {
       router.push("/");
@@ -103,12 +103,7 @@ export default function CalendarPage() {
     }
   };
 
-  const showBackButton =
-    returnTo ||
-    (patientId &&
-      user?.patientProfile &&
-      patientId !== user.patientProfile.id) ||
-    (doctorId && user?.doctorProfile && doctorId !== user.doctorProfile.id);
+  const showBackButton = returnTo || patientId || doctorId;
 
   return (
     <div className="ml-[20px] mt-[20px]">
