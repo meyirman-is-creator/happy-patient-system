@@ -198,11 +198,22 @@ export const appointments = {
   },
   getById: (id: string) => fetchWithAuth(`/api/appointments/${id}`),
   create: (data: AppointmentData) => {
+    // Get the timezone offset in hours and minutes
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * -1; // Negate to get the correct sign
+    const tzHours = Math.floor(tzOffset / 60);
+    const tzMinutes = tzOffset % 60;
+    const tzSign = tzHours >= 0 ? "+" : "-";
+    const tzFormatted = `${tzSign}${Math.abs(tzHours).toString().padStart(2, "0")}:${Math.abs(tzMinutes).toString().padStart(2, "0")}`;
+
+    // Format startTime with timezone info
+    const dateTimeWithTz = `${data.date}T${data.time}:00${tzFormatted}`;
+
     // Transform the data to match what the API expects
     const transformedData = {
       doctorId: data.doctorId,
       patientId: data.patientId,
-      startTime: `${data.date}T${data.time}`, // Combine date and time into startTime
+      startTime: dateTimeWithTz, // Include timezone information
       symptoms: data.reason, // Map reason to symptoms
       duration: data.duration,
       title: data.title,
@@ -237,7 +248,6 @@ export const appointments = {
       body: JSON.stringify(data),
     }),
 };
-
 export const doctors = {
   getAll: () => fetchWithAuth("/api/doctors"),
   getById: (id: string) => fetchWithAuth(`/api/doctors/${id}`),
